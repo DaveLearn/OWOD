@@ -1,7 +1,7 @@
 _BASE_: "../../../Base-RCNN-C4-OWOD.yaml"
 MODEL:
 #  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
-  WEIGHTS: "/home/fk1/workspace/OWOD/output/iOD/10_p_10/model_0009999.pth"
+  WEIGHTS: "./output/iOD/10_p_10/model_0009999.pth"
   ROI_HEADS:
     #    NUM_CLASSES: 21 # 0-19 Known class; 20 -> Unknown; 21 -> Background.
     NUM_CLASSES: 21
