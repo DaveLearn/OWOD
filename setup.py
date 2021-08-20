@@ -200,10 +200,11 @@ setup(
         "mock",
         "tqdm>4.29.0",
         "tensorboard",
-        "fvcore>=0.1.1",
+        "fvcore==0.1.1.dev200512",
         "pycocotools>=2.0.2",  # corresponds to the fork at https://github.com/ppwwyyxx/cocoapi
         "future",  # used by caffe2
         "pydot",  # used to save caffe2 SVGs
+        "reliability==0.5.6"
     ],
     extras_require={
         "all": [
