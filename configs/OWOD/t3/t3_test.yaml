@@ -9,8 +9,8 @@ DATASETS:
   TRAIN: ('t3_voc_coco_2007_train', )
   TEST: ('voc_coco_2007_test', )
 SOLVER:
-  STEPS: (220000, 224000)
-  MAX_ITER: 228000
+  STEPS: (110000, 112000)
+  MAX_ITER: 114000
   WARMUP_ITERS: 0
 OUTPUT_DIR: "./output/t3_evalulate"
 OWOD:
