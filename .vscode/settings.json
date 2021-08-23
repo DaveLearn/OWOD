@@ -1,4 +1,15 @@
 {
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/.hg/store/**": true,
+        "**/*.pyc": true,
+        "**/build/**": true,
+        "**/datasets/VOC2007/**": true,
+        "**/__pycache__/**": true
+    },
+
     "files.exclude": {
         "**/*.pyc": true,
         "build/**": true,
