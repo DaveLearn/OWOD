@@ -31,12 +31,12 @@ task_1 () {
 
 task_2 () {
     # Task 2
-    cp -r ./output/fast/t1 ./output/fast/t2
+    cp -r -T ./output/fast/t1 ./output/fast/t2
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/fast/t2/log.txt
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t2/t2_train_fast.yaml OUTPUT_DIR "./output/fast/t2" MODEL.WEIGHTS "./output/fast/t2/model_final.pth"
 
-    cp -r ./output/fast/t2 ./output/fast/t2_ft
+    cp -r -T ./output/fast/t2 ./output/fast/t2_ft
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t2/t2_ft_fast.yaml OUTPUT_DIR "./output/fast/t2_ft" MODEL.WEIGHTS "./output/fast/t2_ft/model_final.pth"
 
