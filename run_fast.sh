@@ -20,11 +20,11 @@ task_1 () {
     # Task 1
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52125' --config-file ./configs/OWOD/t1/t1_train_fast.yaml OUTPUT_DIR "./output/fast/t1"
 
-    echo "Using code in commit: $(git log --pretty=reference -n 1)" >> ./output/fast/t1/log.txt
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/fast/t1/log.txt
     # No need to finetune in Task 1, as there is no incremental component.
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t1/t1_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "./output/fast/t1_final" MODEL.WEIGHTS "./output/fast/t1/model_final.pth"
-    #echo "Using code in commit: $(git log --pretty=reference -n 1)" >> ./output/t1_final/log.txt
+    #echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t1_final/log.txt
 
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t1/t1_test.yaml  OUTPUT_DIR "./output/fast/t1_final" MODEL.WEIGHTS "./output/fast/t1/model_final.pth"
 }
@@ -32,7 +32,7 @@ task_1 () {
 task_2 () {
     # Task 2
     cp -r ./output/fast/t1 ./output/fast/t2
-    echo "Using code in commit: $(git log --pretty=reference -n 1)" >> ./output/fast/t2/log.txt
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/fast/t2/log.txt
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t2/t2_train_fast.yaml OUTPUT_DIR "./output/fast/t2" MODEL.WEIGHTS "./output/fast/t2/model_final.pth"
 
@@ -42,14 +42,14 @@ task_2 () {
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t2/t2_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "./output/fast/t2_final" MODEL.WEIGHTS "./output/fast/t2_ft/model_final.pth"
     
-    echo "Using code in commit: $(git log --pretty=reference -n 1)" >> ./output/fast/t2_final/log.txt
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/fast/t2_final/log.txt
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t2/t2_test.yaml OUTPUT_DIR "./output/fast/t2_final" MODEL.WEIGHTS "./output/fast/t2_ft/model_final.pth"
 }
 
 task_3 () {
     # Task 3
     cp -r ./output/t2_ft ./output/t3
-    echo "Using code in commit: $(git log --pretty=reference -n 1)" >> ./output/t3/log.txt
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t3/log.txt
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t3/t3_train.yaml OUTPUT_DIR "./output/t3" MODEL.WEIGHTS "./output/t3/model_final.pth"
 
     cp -r ./output/t3 ./output/t3_ft
@@ -58,14 +58,14 @@ task_3 () {
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t3/t3_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "./output/t3_final" MODEL.WEIGHTS "./output/t3_ft/model_final.pth"
 
-    echo "Using code in commit: $(git log --pretty=reference -n 1)" >> ./output/t3_final/log.txt
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t3_final/log.txt
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t3/t3_test.yaml OUTPUT_DIR "./output/t3_final" MODEL.WEIGHTS "./output/t3_ft/model_final.pth"
 }
 
 task_4 () {
     # Task 4
     cp -r ./output/t3_ft ./output/t4
-    echo "Using code in commit: $(git log --pretty=reference -n 1)" >> ./output/t4/log.txt
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t4/log.txt
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t4/t4_train.yaml OUTPUT_DIR "./output/t4" MODEL.WEIGHTS "./output/t4/model_final.pth"
 
@@ -73,7 +73,7 @@ task_4 () {
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t4/t4_ft.yaml OUTPUT_DIR "./output/t4_ft" MODEL.WEIGHTS "./output/t4_ft/model_final.pth"
     
-    echo "Using code in commit: $(git log --pretty=reference -n 1)" >> ./output/t4_final/log.txt
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t4_final/log.txt
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t4/t4_test.yaml OUTPUT_DIR "./output/t4_final" MODEL.WEIGHTS "./output/t4_ft/model_final.pth"
 }
 
