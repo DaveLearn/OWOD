@@ -5,7 +5,8 @@ DATASETS:
   TRAIN: ('t4_voc_coco_2007_train', )
   TEST: ('voc_coco_2007_test', )
 SOLVER:
-  STEPS: (45000, 47500)
+  STEPS: ()
+  BASE_LR: 0.0001
   MAX_ITER: 50000
 OUTPUT_DIR: "./output/t4"
 OWOD:
