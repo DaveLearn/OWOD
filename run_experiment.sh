@@ -1,4 +1,4 @@
-#!/usr/env bash
+#!/usr/bin/env bash
 # General flow: tx_train.yaml -> tx_ft -> tx_val -> tx_test
 
 # tx_train: trains the model.
