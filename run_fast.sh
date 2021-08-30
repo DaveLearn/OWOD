@@ -48,36 +48,36 @@ task_2 () {
 
 task_3 () {
     # Task 3
-    cp -r ./output/t2_ft ./output/t3
-    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t3/log.txt
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t3/t3_train.yaml OUTPUT_DIR "./output/t3" MODEL.WEIGHTS "./output/t3/model_final.pth"
+    cp -r ./output/fast/t2_ft ./output/fast/t3
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/fast/t3/log.txt
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t3/t3_train_fast.yaml OUTPUT_DIR "./output/fast/t3" MODEL.WEIGHTS "./output/fast/t3/model_final.pth"
 
-    cp -r ./output/t3 ./output/t3_ft
+    cp -r ./output/fast/t3 ./output/fast/t3_ft
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t3/t3_ft.yaml OUTPUT_DIR "./output/t3_ft" MODEL.WEIGHTS "./output/t3_ft/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t3/t3_ft_fast.yaml OUTPUT_DIR "./output/fast/t3_ft" MODEL.WEIGHTS "./output/fast/t3_ft/model_final.pth"
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t3/t3_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "./output/t3_final" MODEL.WEIGHTS "./output/t3_ft/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t3/t3_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "./output/fast/t3_final" MODEL.WEIGHTS "./output/fast/t3_ft/model_final.pth"
 
-    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t3_final/log.txt
-    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t3/t3_test.yaml OUTPUT_DIR "./output/t3_final" MODEL.WEIGHTS "./output/t3_ft/model_final.pth"
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/fast/t3_final/log.txt
+    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t3/t3_test.yaml OUTPUT_DIR "./output/fast/t3_final" MODEL.WEIGHTS "./output/fast/t3_ft/model_final.pth"
 }
 
 task_4 () {
     # Task 4
-    cp -r ./output/t3_ft ./output/t4
-    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t4/log.txt
+    cp -r ./output/fast/t3_ft ./output/fast/t4
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/fast/t4/log.txt
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t4/t4_train.yaml OUTPUT_DIR "./output/t4" MODEL.WEIGHTS "./output/t4/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t4/t4_train_fast.yaml OUTPUT_DIR "./output/fast/t4" MODEL.WEIGHTS "./output/fast/t4/model_final.pth"
 
-    cp -r ./output/t4 ./output/t4_ft
+    cp -r ./output/fast/t4 ./output/fast/t4_ft
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t4/t4_ft.yaml OUTPUT_DIR "./output/t4_ft" MODEL.WEIGHTS "./output/t4_ft/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t4/t4_ft_fast.yaml OUTPUT_DIR "./output/fast/t4_ft" MODEL.WEIGHTS "./output/fast/t4_ft/model_final.pth"
     
-    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/t4_final/log.txt
-    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t4/t4_test.yaml OUTPUT_DIR "./output/t4_final" MODEL.WEIGHTS "./output/t4_ft/model_final.pth"
+    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> ./output/fast/t4_final/log.txt
+    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t4/t4_test.yaml OUTPUT_DIR "./output/fast/t4_final" MODEL.WEIGHTS "./output/fast/t4_ft/model_final.pth"
 }
 
 #task_1
-task_2
-#task_3
-#task_4
+#task_2
+task_3
+task_4
