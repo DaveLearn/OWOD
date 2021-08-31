@@ -40,7 +40,7 @@ clean_folder () {
 }
 
 collect_stats () {
-    python tools/extract_stats < "$1"/log.txt > "$1"/stats.json
+    python tools/extract_stats.py < "$1"/log.txt > "$1"/stats.json
 }
 
 task_1 () {
