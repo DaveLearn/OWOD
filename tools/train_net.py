@@ -127,6 +127,8 @@ def setup(args):
     default_setup(cfg, args)
     return cfg
 
+  
+
 
 def main(args):
     cfg = setup(args)
@@ -150,6 +152,17 @@ def main(args):
     """
     trainer = Trainer(cfg)
     trainer.resume_or_load(resume=args.resume)
+    
+    # freeze all layers
+    for name, layer in trainer.model.named_modules():
+        if str(name).startswith("proposal_generator.rpn_head.") or str(name).startswith("roi_heads.box_predictor."):
+            print(f"NOT Freezing layer {name}")
+            continue
+        print(f"Freezing layer {name}")
+        for param in layer.parameters():
+            param.requires_grad = False
+    
+
     if cfg.TEST.AUG.ENABLED:
         trainer.register_hooks(
             [hooks.EvalHook(0, lambda: trainer.test_with_TTA(cfg, trainer.model))]
