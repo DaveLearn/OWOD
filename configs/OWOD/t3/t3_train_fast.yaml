@@ -1,15 +1,15 @@
 _BASE_: "../../Base-RCNN-C4-OWOD.yaml"
 MODEL:
-  WEIGHTS: "./output/t3/model_final.pth"
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
   RPN:
     POST_NMS_TOPK_TRAIN: 300
 DATASETS:
-  TRAIN: ('t3_voc_coco_2007_train', )
+  TRAIN: ('t3_voc_coco_2007_ft', )
   TEST: ('voc_coco_2007_test', )
 SOLVER:
-  STEPS: [13500]
-  BASE_LR: 0.001
-  MAX_ITER: 15000
+  STEPS: (3500, 4500)
+  MAX_ITER: 5000
+  WARMUP_ITERS: 100
 OUTPUT_DIR: "./output/t3"
 OWOD:
   PREV_INTRODUCED_CLS: 40

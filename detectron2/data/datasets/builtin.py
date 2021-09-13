@@ -216,6 +216,7 @@ def register_all_pascal_voc(root):
         ("voc_2012_train", "VOC2012", "train"),
         ("voc_2012_val", "VOC2012", "val"),
         ("t1_voc_coco_2007_train", "VOC2007", "t1_train"),
+        ("t1_voc_coco_2007_ft", "VOC2007", "t1_ft_100"),
         ("t1_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t1_train_with_unk"),
         ("t2_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t2_train_with_unk"),
         ("t3_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t3_train_with_unk"),
