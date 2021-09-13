@@ -12,23 +12,20 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Launch T1 Val",
+            "name": "Launch T1 Train Fast",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/tools/train_net.py",
             "args": [
                 "--num-gpus", "1",
                 "--dist-url='tcp://127.0.0.1:52133'",
-                "--config-file", "./configs/OWOD/t1/t1_val.yaml",
-                "SOLVER.IMS_PER_BATCH","8",
-                "SOLVER.BASE_LR", "0.01",
-                "OWOD.TEMPERATURE", "1.5",
-                "OUTPUT_DIR", "./output/t1_final",
-                "MODEL.WEIGHTS", "./output/t1/model_final.pth"
+                "--config-file", "./configs/OWOD/t1/t1_train_fast.yaml",
+                "OUTPUT_DIR", "./output/debug/t1"
             ],
             "env": {
                 "CUDA_LAUNCH_BLOCKING": "1",
-                "CUDA_HOME": "~/"
+                "CUDA_HOME": "~/",
+                "PYTHONOPTIMIZE": "TRUE"
             }
         },
         {

@@ -14,6 +14,10 @@ for task_num,output in enumerate(result_outputs, start=1):
     logfile = logpath+"/log.txt"
     outputfile = logpath+"/stats.json"
     print(f"Processing logfile: {logfile} -> {outputfile}")
+    if not os.path.exists(logfile):
+        print(f"  File not found - skipping")
+        continue
+
     os.system(f"python {script_path}/extract_stats.py < {logfile} > {outputfile}")
     with open(outputfile, 'r') as statsfd:
         stats = json.load(statsfd)
@@ -31,6 +35,10 @@ for task_num in range(1, 5):
         logfile = logpath+"/log.txt"
         outputfile = logpath+"/timings.json"
         print(f"Processing logfile: {logfile} -> {outputfile}")
+        if not os.path.exists(logfile):
+            print(f"  File not found - skipping")
+            continue
+
         os.system(f"python {script_path}/extract_timings.py < {logfile} > {outputfile}")
         stat_key = fine_tune and "Fine Tune" or "Train"
         with open(outputfile, 'r') as statsfd:
