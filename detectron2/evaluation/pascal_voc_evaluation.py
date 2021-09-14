@@ -273,7 +273,7 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
             self._logger.info("Prev class AP50: " + str(np.mean(aps[50][:self.prev_intro_cls])))
             self._logger.info("Prev class Precisions50: " + str(np.mean(precs[50][:self.prev_intro_cls])))
             self._logger.info("Prev class Recall50: " + str(np.mean(recs[50][:self.prev_intro_cls])))
-
+            ret["Prev"] = {"AP50": np.mean(aps[50][:self.prev_intro_cls]))}
             # self._logger.info("Prev class AP75: " + str(np.mean(aps[75][:self.prev_intro_cls])))
 
         # self._logger.info("\nCurrent class AP__: " + str(np.mean(avg_precs[self.prev_intro_cls:self.curr_intro_cls])))
@@ -281,12 +281,14 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         self._logger.info("Current class Precisions50: " + str(np.mean(precs[50][self.prev_intro_cls:self.prev_intro_cls + self.curr_intro_cls])))
         self._logger.info("Current class Recall50: " + str(np.mean(recs[50][self.prev_intro_cls:self.prev_intro_cls + self.curr_intro_cls])))
         # self._logger.info("Current class AP75: " + str(np.mean(aps[75][self.prev_intro_cls:self.curr_intro_cls])))
+        ret["Curr"] = {"AP50": np.mean(aps[50][self.prev_intro_cls:self.prev_intro_cls + self.curr_intro_cls]))}
 
         # self._logger.info("\nKnown AP__: " + str(np.mean(avg_precs[:self.prev_intro_cls + self.curr_intro_cls])))
         self._logger.info("Known AP50: " + str(np.mean(aps[50][:self.prev_intro_cls + self.curr_intro_cls])))
         self._logger.info("Known Precisions50: " + str(np.mean(precs[50][:self.prev_intro_cls + self.curr_intro_cls])))
         self._logger.info("Known Recall50: " + str(np.mean(recs[50][:self.prev_intro_cls + self.curr_intro_cls])))
         # self._logger.info("Known AP75: " + str(np.mean(aps[75][:self.prev_intro_cls + self.curr_intro_cls])))
+        ret["Known"] = {"AP50": np.mean(aps[50][:self.prev_intro_cls + self.curr_intro_cls]))}
 
         # self._logger.info("\nUnknown AP__: " + str(avg_precs[-1]))
         self._logger.info("Unknown AP50: " + str(aps[50][-1]))
