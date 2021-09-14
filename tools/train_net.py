@@ -16,6 +16,7 @@ this file as an example of how to use the library.
 You may want to write your own script with your datasets and other customizations.
 """
 
+from detectron2.layers.blocks import CNNBlockBase
 import logging
 import os
 from collections import OrderedDict
@@ -153,14 +154,19 @@ def main(args):
     trainer = Trainer(cfg)
     trainer.resume_or_load(resume=args.resume)
     
+    logger = logging.getLogger("train_net.main")
     # freeze all layers
     for name, layer in trainer.model.named_modules():
         if str(name).startswith("proposal_generator") or str(name).startswith("roi_heads.box_predictor") or str(name) == "roi_heads" or str(name) == "":
-            print(f"NOT Freezing layer {name}")
+            logger.info(f"NOT Freezing layer {name}")
             continue
-        print(f"Freezing layer {name}")
-        for param in layer.parameters():
-            param.requires_grad = False
+        logger.info(f"Freezing layer {name}")
+        if isinstance(layer, CNNBlockBase):
+            layer.freeze()
+        else:
+            layer.eval()
+            for param in layer.parameters():
+                param.requires_grad = False
     
 
     if cfg.TEST.AUG.ENABLED:
