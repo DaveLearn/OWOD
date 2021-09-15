@@ -620,6 +620,8 @@ _C.OWOD.SKIP_TRAINING_WHILE_EVAL = False
 _C.OWOD.FEATURE_STORE_SAVE_PATH = ''
 _C.OWOD.TEMPERATURE = 1.5
 
+_C.OWOD.FREEZE_LAYERS = False
+
 
 # ---------------------------------------------------------------------------- #
 # Misc options
