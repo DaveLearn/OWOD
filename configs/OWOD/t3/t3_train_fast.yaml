@@ -7,8 +7,8 @@ DATASETS:
   TRAIN: ('t3_voc_coco_2007_ft', )
   TEST: ('voc_coco_2007_test', )
 SOLVER:
-  STEPS: (4500, 4750)
-  MAX_ITER: 5000
+  STEPS: (4500, 6000)
+  MAX_ITER: 7500
   WARMUP_ITERS: 10
 OUTPUT_DIR: "./output/t3"
 OWOD:
