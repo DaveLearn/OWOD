@@ -217,6 +217,7 @@ def register_all_pascal_voc(root):
         ("voc_2012_val", "VOC2012", "val"),
         ("t1_voc_coco_2007_train", "VOC2007", "t1_train"),
         ("t1_voc_coco_2007_ft", "VOC2007", "t1_ft_100"),
+        ("t1_voc_coco_2007_ft200", "VOC2007", "t1_ft_200"),
         ("t1_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t1_train_with_unk"),
         ("t2_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t2_train_with_unk"),
         ("t3_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t3_train_with_unk"),
@@ -226,10 +227,13 @@ def register_all_pascal_voc(root):
         ("voc_coco_2007_val", "VOC2007", "all_task_val"),
         ("t2_voc_coco_2007_train", "VOC2007", "t2_train"),
         ("t2_voc_coco_2007_ft", "VOC2007", "t2_ft"),
+        ("t2_voc_coco_2007_ft200", "VOC2007", "t2_ft_200"),
         ("t3_voc_coco_2007_train", "VOC2007", "t3_train"),
         ("t3_voc_coco_2007_ft", "VOC2007", "t3_ft"),
+        ("t3_voc_coco_2007_ft200", "VOC2007", "t3_ft_200"),
         ("t4_voc_coco_2007_train", "VOC2007", "t4_train"),
         ("t4_voc_coco_2007_ft", "VOC2007", "t4_ft"),
+        ("t4_voc_coco_2007_ft200", "VOC2007", "t4_ft_200"),
     ]
     for name, dirname, split in SPLITS:
         year = 2007 if "2007" in name else 2012
