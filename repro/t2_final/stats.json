@@ -1,0 +1,45 @@
+{
+    "T1 class": {
+        "Precisions50": 13.24,
+        "Recall50": 72.51,
+        "AP50": 52.05
+    },
+    "T2 class": {
+        "Precisions50": 4.36,
+        "Recall50": 48.45,
+        "AP50": 25.18
+    },
+    "T3 class": {
+        "Precisions50": 0.0,
+        "Recall50": 0.0,
+        "AP50": 0.0
+    },
+    "T4 class": {
+        "Precisions50": 0.0,
+        "Recall50": 0.0,
+        "AP50": 0.0
+    },
+    "Prev class": {
+        "Precisions50": 13.226370654122118,
+        "Recall50": 72.5067716465579,
+        "AP50": 52.046148813787724
+    },
+    "Current class": {
+        "Precisions50": 4.366066810643323,
+        "Recall50": 48.455047302711066,
+        "AP50": 25.179285615759543
+    },
+    "Known": {
+        "Precisions50": 8.79621873238272,
+        "Recall50": 60.480909474634494,
+        "AP50": 38.61271721477364
+    },
+    "Unknown": {
+        "Precisions50": 1.8235600052008842,
+        "Recall50": 6.69131679389313,
+        "AP50": 0.19972348958830957
+    },
+    "Absolute OSE": 7711.0,
+    "Wilderness Impact": 0.0170270713662679,
+    "Weights": "/home/joseph/workspace/OWOD/output/t2_ft/model_final.pth"
+}
