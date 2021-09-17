@@ -37,6 +37,9 @@ mkdir -p "$OUTDIR"
 
 clean_folder () {
     rm -f "$1"/model_[0123456789]*   
+    if [[ -e "$1"/energy ]]; then
+        rm -rf "$1"/energy
+    fi
 }
 
 collect_stats () {
