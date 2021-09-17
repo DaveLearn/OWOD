@@ -33,17 +33,21 @@ ose_re = re.compile(".*INFO: Absolute OSE \\(total_num_unk_det_as_known\\): \\{5
 wi_re = re.compile(".*INFO: Wilderness Impact: \\{.*, 0\\.8: \\{50: (?P<value>[\\d\\.]+)\\}")
 reset_re = re.compile(".*Evaluating voc_coco_2007_test using 2012 metric")
 weights_re = re.compile(".*WEIGHTS: (?P<weights>.*\\.pth)")
+commit_re = re.compile(".*Using code in commit: (?P<commit>.*)$")
 
 evaluated_weights = None
+version = None
 
 for line in sys.stdin:
     m = weights_re.match(line)
     if m:
         evaluated_weights = m.groupdict()["weights"]
+        continue
 
     m = reset_re.match(line)
     if m:
         stats = new_stats()
+        continue
 
     m = prec_re.match(line)
     if m:
@@ -70,8 +74,14 @@ for line in sys.stdin:
     if m:
         stats["Wilderness Impact"] = float(m.groupdict()["value"])
         continue
+    
+    m = commit_re.match(line)
+    if m:
+        version = m.groupdict()["commit"]
+        continue
 
 stats["Weights"] = evaluated_weights
+stats["Version"] = version
 
 print(json.dumps(stats, indent=4))
 
