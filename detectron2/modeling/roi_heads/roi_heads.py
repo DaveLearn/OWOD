@@ -430,12 +430,12 @@ class Res5ROIHeads(ROIHeads):
             stride_per_block=[2, 1, 1],
             in_channels=out_channels // 2,
             bottleneck_channels=bottleneck_channels,
-            out_channels=out_channels,
+            out_channels=out_channels * 2,
             num_groups=num_groups,
             norm=norm,
             stride_in_1x1=stride_in_1x1,
         )
-        return nn.Sequential(*blocks), out_channels
+        return nn.Sequential(*blocks), out_channels * 2
 
     def _shared_roi_transform(self, features, boxes):
         x = self.pooler(features, boxes)
