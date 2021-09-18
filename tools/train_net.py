@@ -159,7 +159,7 @@ def main(args):
         print("Freezing Layers...")
         # freeze all layers
         for name, layer in trainer.model.named_modules():
-            if "class_fc" not in str(name) and (str(name).startswith("proposal_generator") or str(name).startswith("roi_heads.box_predictor") or str(name) == "roi_heads" or str(name) == ""):
+            if "cls_fc" not in str(name) and (str(name).startswith("proposal_generator") or str(name).startswith("roi_heads.box_predictor") or str(name) == "roi_heads" or str(name) == ""):
                 logger.info(f"NOT Freezing layer {name}")
                 continue
             logger.info(f"Freezing layer {name}")
