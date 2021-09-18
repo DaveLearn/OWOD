@@ -453,8 +453,8 @@ class FastRCNNOutputLayers(nn.Module):
             input_shape = ShapeSpec(channels=input_shape)
         input_size = input_shape.channels * (input_shape.width or 1) * (input_shape.height or 1)
         # prediction layer for num_classes foreground classes and one background class (hence + 1)
-        self.cls_fc = Linear(input_size, input_size*2)
-        self.cls_score = Linear(input_size*2, num_classes + 1)
+        self.cls_fc = Linear(input_size, input_size*4)
+        self.cls_score = Linear(input_size*4, num_classes + 1)
         num_bbox_reg_classes = 1 if cls_agnostic_bbox_reg else num_classes
         box_dim = len(box2box_transform.weights)
         self.bbox_pred = Linear(input_size, num_bbox_reg_classes * box_dim)
