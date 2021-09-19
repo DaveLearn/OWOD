@@ -551,7 +551,7 @@ class FastRCNNOutputLayers(nn.Module):
         """
         if x.dim() > 2:
             x = torch.flatten(x, start_dim=1)
-        hid = torch.relu(self.cls_fc(x))
+        hid = torch.sigmoid(self.cls_fc(x))
         scores = self.cls_score(hid)
         proposal_deltas = self.bbox_pred(x)
         return scores, proposal_deltas
