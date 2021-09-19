@@ -394,6 +394,9 @@ def Xavier(m):
         m.weight.data.uniform_(-a, a)
         m.bias.data.fill_(0.0)
 
+eps = torch.tensor(0.0000001)
+
+
 class FastRCNNOutputLayers(nn.Module):
     """
     Two linear layers for predicting Fast R-CNN outputs:
@@ -454,6 +457,11 @@ class FastRCNNOutputLayers(nn.Module):
         input_size = input_shape.channels * (input_shape.width or 1) * (input_shape.height or 1)
         # prediction layer for num_classes foreground classes and one background class (hence + 1)
         self.cls_score = Linear(input_size, num_classes + 1)
+        
+        # repurpose the last layer to track averages
+        torch.nn.init.zeros_(self.cls_score.weight)
+        torch.nn.init.zeros_(self.cls_score.bias)
+
         num_bbox_reg_classes = 1 if cls_agnostic_bbox_reg else num_classes
         box_dim = len(box2box_transform.weights)
         self.bbox_pred = Linear(input_size, num_bbox_reg_classes * box_dim)
@@ -535,6 +543,18 @@ class FastRCNNOutputLayers(nn.Module):
             # fmt: on
         }
 
+    @classmethod
+    def log_loss(cls, feat, prob):
+        expected = prob.clone()
+        not_expected = 1-prob
+        with torch.no_grad():
+            expected.clamp_(min=eps)
+            not_expected.clamp_(min=eps)
+
+        return -(torch.matmul(feat, torch.log(expected.T)) + torch.matmul(1-feat, torch.log(not_expected.T)))
+
+
+
     def forward(self, x):
         """
         Args:
@@ -550,7 +570,11 @@ class FastRCNNOutputLayers(nn.Module):
         """
         if x.dim() > 2:
             x = torch.flatten(x, start_dim=1)
-        scores = self.cls_score(x)
+        #scores = self.cls_score(x)
+
+        x = torch.sigmoid(x)
+        l = -FastRCNNOutputLayers.log_loss(x, self.cls_score.weight)
+        scores = F.softmax(l, dim=1)
         proposal_deltas = self.bbox_pred(x)
         return scores, proposal_deltas
 
