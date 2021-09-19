@@ -459,7 +459,7 @@ class FastRCNNOutputLayers(nn.Module):
         self.cls_fc = Linear(input_size, input_size*32)
         self.cls_score = Linear(input_size*32, num_classes + 1)
         
-        nn.init.kaiming_uniform_(self.cls_fc, mode='fan_out')
+        nn.init.kaiming_uniform_(self.cls_fc.weight, mode='fan_out')
         nn.init.zeros_(self.cls_fc.bias)
         # repurpose the last layer to track averages
         torch.nn.init.zeros_(self.cls_score.weight)
