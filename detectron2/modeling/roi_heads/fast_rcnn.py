@@ -456,8 +456,11 @@ class FastRCNNOutputLayers(nn.Module):
             input_shape = ShapeSpec(channels=input_shape)
         input_size = input_shape.channels * (input_shape.width or 1) * (input_shape.height or 1)
         # prediction layer for num_classes foreground classes and one background class (hence + 1)
-        self.cls_score = Linear(input_size, num_classes + 1)
+        self.cls_fc = Linear(input_size, input_size*32)
+        self.cls_score = Linear(input_size*32, num_classes + 1)
         
+        nn.init.normal_(self.cls_fc.weight, std=0.01)
+        nn.init.zeros_(self.cls_fc.bias)
         # repurpose the last layer to track averages
         torch.nn.init.zeros_(self.cls_score.weight)
         torch.nn.init.zeros_(self.cls_score.bias)
@@ -575,8 +578,7 @@ class FastRCNNOutputLayers(nn.Module):
         if x.dim() > 2:
             x = torch.flatten(x, start_dim=1)
         #scores = self.cls_score(x)
-        
-        cls_x = torch.sigmoid(x)
+        cls_x = torch.sigmoid(self.cls_fc(x))
        
         
         #scores = F.softmax(l, dim=1)
