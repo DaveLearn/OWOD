@@ -468,9 +468,11 @@ class FastRCNNOutputLayers(nn.Module):
         box_dim = len(box2box_transform.weights)
         self.bbox_pred = Linear(input_size, num_bbox_reg_classes * box_dim)
 
-        nn.init.normal_(self.cls_score.weight, std=0.01)
+       
+       # nn.init.normal_(self.cls_score.weight, std=0.01)
+
         nn.init.normal_(self.bbox_pred.weight, std=0.001)
-        for l in [self.cls_score, self.bbox_pred]:
+        for l in [self.bbox_pred]:
             nn.init.constant_(l.bias, 0)
 
         self.box2box_transform = box2box_transform
