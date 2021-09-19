@@ -470,7 +470,7 @@ class Res5ROIHeads(ROIHeads):
             [features[f] for f in self.in_features], proposal_boxes
         )
         input_features = box_features.mean(dim=[2, 3])
-        predictions = self.box_predictor(input_features)
+        predictions = self.box_predictor(input_features, proposals if self.training else None)
 
         if self.training:
             # self.log_features(input_features, proposals)

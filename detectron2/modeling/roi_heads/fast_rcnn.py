@@ -461,6 +461,8 @@ class FastRCNNOutputLayers(nn.Module):
         # repurpose the last layer to track averages
         torch.nn.init.zeros_(self.cls_score.weight)
         torch.nn.init.zeros_(self.cls_score.bias)
+        for p in self.cls_score.parameters():
+            p.requires_grad = False
 
         num_bbox_reg_classes = 1 if cls_agnostic_bbox_reg else num_classes
         box_dim = len(box2box_transform.weights)
@@ -555,7 +557,7 @@ class FastRCNNOutputLayers(nn.Module):
 
 
 
-    def forward(self, x):
+    def forward(self, x, proposals=None):
         """
         Args:
             x: per-region features of shape (N, ...) for N bounding boxes to predict.
@@ -571,10 +573,18 @@ class FastRCNNOutputLayers(nn.Module):
         if x.dim() > 2:
             x = torch.flatten(x, start_dim=1)
         #scores = self.cls_score(x)
+        
+        cls_x = torch.sigmoid(x)
+       
+        scores = -FastRCNNOutputLayers.log_loss(cls_x, self.cls_score.weight)
+        #scores = F.softmax(l, dim=1)
+        
+        if proposals is not None:
+            for prop in proposals:
+                for idx, target in enumerate(prop.gt_classes):
+                    self.cls_score.weight[target] = (self.cls_score.weight[target] * self.cls_score.bias[target] + cls_x[idx])/(self.cls_score.bias[target] + 1)
+                    self.cls_score.bias[target] = self.cls_score.bias[target] + 1
 
-        x = torch.sigmoid(x)
-        l = -FastRCNNOutputLayers.log_loss(x, self.cls_score.weight)
-        scores = F.softmax(l, dim=1)
         proposal_deltas = self.bbox_pred(x)
         return scores, proposal_deltas
 
