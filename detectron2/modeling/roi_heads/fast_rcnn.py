@@ -216,13 +216,17 @@ class FastRCNNOutputs:
         bg_class_ind = self.pred_class_logits.shape[1] - 1
 
         fg_inds = (self.gt_classes >= 0) & (self.gt_classes < bg_class_ind)
+        bg_inds = (self.gt_classes == bg_class_ind)
         num_fg = fg_inds.nonzero().numel()
+        num_bg = bg_inds.nonzero().numel()
         fg_gt_classes = self.gt_classes[fg_inds]
         fg_pred_classes = pred_classes[fg_inds]
+        bg_pred_classes = pred_classes[bg_inds]
 
         num_false_negative = (fg_pred_classes == bg_class_ind).nonzero().numel()
         num_accurate = (pred_classes == self.gt_classes).nonzero().numel()
         fg_num_accurate = (fg_pred_classes == fg_gt_classes).nonzero().numel()
+        num_false_positive = (bg_pred_classes != bg_class_ind).nonzero().numel()
 
         storage = get_event_storage()
         if num_instances > 0:
@@ -230,6 +234,8 @@ class FastRCNNOutputs:
             if num_fg > 0:
                 storage.put_scalar("fast_rcnn/fg_cls_accuracy", fg_num_accurate / num_fg)
                 storage.put_scalar("fast_rcnn/false_negative", num_false_negative / num_fg)
+            if num_bg > 0:
+                storage.put_scalar("fast_rcnn/bg_false_positive", num_false_positive / num_bg)
 
     def softmax_cross_entropy_loss(self):
         """
