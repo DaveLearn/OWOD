@@ -26,6 +26,7 @@ import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
 from detectron2.data import MetadataCatalog
+from detectron2.utils.events import get_event_storage
 from detectron2.engine import DefaultTrainer, default_argument_parser, default_setup, hooks, launch
 from detectron2.evaluation import (
     CityscapesInstanceEvaluator,
@@ -170,6 +171,14 @@ def main(args):
                 for param in layer.parameters():
                     param.requires_grad = False
     
+    def write_unknown_objectness_histo(trainer):
+        if trainer.iter % 100 == 0:
+            storage = get_event_storage()
+            storage.put_histogram("unknown_objectness", torch.tensor(trainer.model.roi_heads.unknown_objectness_scores))
+
+    trainer.register_hooks(
+            [hooks.CallbackHook(after_step=write_unknown_objectness_histo)]
+    )
 
     if cfg.TEST.AUG.ENABLED:
         trainer.register_hooks(

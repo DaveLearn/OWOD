@@ -171,6 +171,7 @@ class ROIHeads(torch.nn.Module):
         self.proposal_append_gt = proposal_append_gt
         self.enable_thresold_autolabelling = enable_thresold_autolabelling
         self.unk_k = unk_k
+        self.unknown_objectness_scores = []
 
     @classmethod
     def from_config(cls, cfg):
@@ -238,8 +239,10 @@ class ROIHeads(torch.nn.Module):
             sorted_indices = list(zip(
                 *heapq.nlargest(self.unk_k, enumerate(pred_objectness_score_ss), key=operator.itemgetter(1))))[0]
             for index in sorted_indices:
+                self.unknown_objectness_scores.append(pred_objectness_score_ss[index].item())
                 mask[index] = True
             gt_classes_ss[mask] = self.num_classes - 1
+
 
         return sampled_idxs, gt_classes_ss
 
