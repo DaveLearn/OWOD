@@ -4,7 +4,7 @@ MODEL:
   RPN:
     POST_NMS_TOPK_TRAIN: 300
 DATASETS:
-  TRAIN: ('t1_voc_coco_2007_ft200', ) # t1_voc_coco_2007_train, t1_voc_coco_2007_ft
+  TRAIN: ('t1_voc_coco_2007_ft300', ) # t1_voc_coco_2007_train, t1_voc_coco_2007_ft
   TEST: ('voc_coco_2007_test',)   # voc_coco_2007_test, t1_voc_coco_2007_test, t1_voc_coco_2007_val
 SOLVER:
   STEPS: (4500, 6000)
