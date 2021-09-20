@@ -238,7 +238,8 @@ class ROIHeads(torch.nn.Module):
             sorted_indices = list(zip(
                 *heapq.nlargest(self.unk_k, enumerate(pred_objectness_score_ss), key=operator.itemgetter(1))))[0]
             for index in sorted_indices:
-                mask[index] = True
+                if pred_objectness_score_ss[index] > 1.0: # ignore objects we aren't super confident about
+                    mask[index] = True
             gt_classes_ss[mask] = self.num_classes - 1
 
         return sampled_idxs, gt_classes_ss
