@@ -221,6 +221,15 @@ class ROIHeads(torch.nn.Module):
         else:
             gt_classes = torch.zeros_like(matched_idxs) + self.num_classes
 
+        if self.enable_thresold_autolabelling:
+            matched_labels_ss = matched_labels
+            assert objectness_logits
+            pred_objectness_score_ss = objectness_logits
+
+            # 1) Remove FG objectness score. 2) Sort and select top k. 3) Build and apply mask.
+            gt_classes[(pred_objectness_score_ss > 1.5) & (matched_labels_ss == 0)] = self.num_classes - 1
+
+
         sampled_fg_idxs, sampled_bg_idxs = subsample_labels(
             gt_classes, self.batch_size_per_image, self.positive_fraction, self.num_classes
         )
@@ -228,19 +237,7 @@ class ROIHeads(torch.nn.Module):
         sampled_idxs = torch.cat([sampled_fg_idxs, sampled_bg_idxs], dim=0)
         gt_classes_ss = gt_classes[sampled_idxs]
 
-        if self.enable_thresold_autolabelling:
-            matched_labels_ss = matched_labels[sampled_idxs]
-            pred_objectness_score_ss = objectness_logits[sampled_idxs]
 
-            # 1) Remove FG objectness score. 2) Sort and select top k. 3) Build and apply mask.
-            mask = torch.zeros((pred_objectness_score_ss.shape), dtype=torch.bool)
-            pred_objectness_score_ss[matched_labels_ss != 0] = -1
-            sorted_indices = list(zip(
-                *heapq.nlargest(self.unk_k, enumerate(pred_objectness_score_ss), key=operator.itemgetter(1))))[0]
-            for index in sorted_indices:
-                if pred_objectness_score_ss[index] > 1.0: # ignore objects we aren't super confident about
-                    mask[index] = True
-            gt_classes_ss[mask] = self.num_classes - 1
 
         return sampled_idxs, gt_classes_ss
 
