@@ -216,6 +216,7 @@ def register_all_pascal_voc(root):
         ("voc_2012_train", "VOC2012", "train"),
         ("voc_2012_val", "VOC2012", "val"),
         ("t1_voc_coco_2007_train", "VOC2007", "t1_train"),
+        ("t1_voc_coco_2007_mini_train", "VOC2007", "t1_25pct_train"),
         ("t1_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t1_train_with_unk"),
         ("t2_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t2_train_with_unk"),
         ("t3_voc_coco_2007_val_with_known_and_unk", "VOC2007", "t3_train_with_unk"),
@@ -224,10 +225,13 @@ def register_all_pascal_voc(root):
         ("voc_coco_2007_test", "VOC2007", "all_task_test"),
         ("voc_coco_2007_val", "VOC2007", "all_task_val"),
         ("t2_voc_coco_2007_train", "VOC2007", "t2_train"),
+        ("t2_voc_coco_2007_mini_train", "VOC2007", "t2_25pct_train"),
         ("t2_voc_coco_2007_ft", "VOC2007", "t2_ft"),
         ("t3_voc_coco_2007_train", "VOC2007", "t3_train"),
+        ("t3_voc_coco_2007_mini_train", "VOC2007", "t3_25pct_train"),
         ("t3_voc_coco_2007_ft", "VOC2007", "t3_ft"),
         ("t4_voc_coco_2007_train", "VOC2007", "t4_train"),
+        ("t4_voc_coco_2007_mini_train", "VOC2007", "t4_25pct_train"),
         ("t4_voc_coco_2007_ft", "VOC2007", "t4_ft"),
     ]
     for name, dirname, split in SPLITS:

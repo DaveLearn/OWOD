@@ -1,0 +1,3 @@
+_BASE_: "./t4_ft_fast.yaml"
+SOLVER:
+  MAX_ITER: 1250
