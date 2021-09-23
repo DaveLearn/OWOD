@@ -649,6 +649,11 @@ class FastRCNNOutputLayers(nn.Module):
                                         (1 - self.clustering_momentum) * new_means[i]
 
             c_loss = self.clstr_loss_l2_cdist(input_features, proposals)
+            if torch.isinf(c_loss):
+                logging.getLogger(__name__).info(f"Got an infinite cluster loss with {len(proposals)}  proposals")
+                return torch.tensor(0.0).cuda()
+        
+       
         return c_loss
 
     # def get_ae_loss(self, input_features):
