@@ -478,7 +478,7 @@ class FastRCNNOutputLayers(nn.Module):
         self.clustering_update_mu_iter = clustering_update_mu_iter
         self.clustering_momentum = clustering_momentum
 
-        self.hingeloss = nn.HingeEmbeddingLoss(2)
+        self.hingeloss = nn.HingeEmbeddingLoss(margin)
         self.enable_clustering = enable_clustering
 
         self.prev_intro_cls = prev_intro_cls
@@ -597,7 +597,8 @@ class FastRCNNOutputLayers(nn.Module):
             if item == None:
                 all_means[i] = torch.zeros((length))
 
-        distances = torch.cdist(fg_features, torch.stack(all_means).cuda(), p=self.margin)
+        cuda_means = torch.stack(all_means).cuda()
+        distances = torch.cdist(fg_features, cuda_means, p=2)
         labels = []
 
         for index, feature in enumerate(fg_features):
