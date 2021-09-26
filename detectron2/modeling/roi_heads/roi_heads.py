@@ -226,8 +226,13 @@ class ROIHeads(torch.nn.Module):
             assert objectness_logits
             pred_objectness_score_ss = objectness_logits
 
-            # 1) Remove FG objectness score. 2) Sort and select top k. 3) Build and apply mask.
-            gt_classes[(pred_objectness_score_ss > 1.5) & (matched_labels_ss == 0)] = self.num_classes - 1
+            # calculate objectness threshold from matched ground truth
+            matched_ground_truths = pred_objectness_score_ss[matched_labels_ss == 1]
+            if len(matched_ground_truths > 0):
+                min_thresh = matched_ground_truths.min()
+
+                # all detections with a objectness score > the lowest known object detection become "unknown"
+                gt_classes[(pred_objectness_score_ss > min_thresh) & (matched_labels_ss == 0)] = self.num_classes - 1
 
 
         sampled_fg_idxs, sampled_bg_idxs = subsample_labels(
