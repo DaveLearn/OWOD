@@ -478,7 +478,7 @@ class FastRCNNOutputLayers(nn.Module):
         self.clustering_update_mu_iter = clustering_update_mu_iter
         self.clustering_momentum = clustering_momentum
 
-        self.hingeloss = nn.HingeEmbeddingLoss(self.margin)
+        self.hingeloss = nn.HingeEmbeddingLoss(margin)
         self.enable_clustering = enable_clustering
 
         self.prev_intro_cls = prev_intro_cls
