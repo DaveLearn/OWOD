@@ -612,7 +612,12 @@ class FastRCNNOutputLayers(nn.Module):
                     labels.append(0)
 
         loss = self.hingeloss(distances, torch.tensor(labels).reshape((-1, self.num_classes+1)).cuda())
+        if torch.isinf(loss):
+            logging.getLogger(__name__).info(f"Got an infinite cluster loss with {distances.shape} distances, {fg_features.shape} features, {cuda_means.shape} means")
+            logging.getLogger(__name__).info(f"gt classes: {gt_classes}")
+            return torch.tensor(0.0).cuda()
 
+            
         return loss
 
     def get_clustering_loss(self, input_features, proposals):
@@ -650,6 +655,11 @@ class FastRCNNOutputLayers(nn.Module):
                                         (1 - self.clustering_momentum) * new_means[i]
 
             c_loss = self.clstr_loss_l2_cdist(input_features, proposals)
+            if torch.isinf(c_loss):
+                logging.getLogger(__name__).info(f"Got an infinite cluster loss with {len(proposals)}  proposals")
+                return torch.tensor(0.0).cuda()
+        
+       
         return c_loss
 
     # def get_ae_loss(self, input_features):
@@ -682,6 +692,10 @@ class FastRCNNOutputLayers(nn.Module):
             self.smooth_l1_beta,
             self.box_reg_loss_type,
         ).losses()
+        
+        if torch.isnan(losses["loss_cls"]):
+            print("got nan loss")
+        
         if input_features is not None:
             # losses["loss_cluster_encoder"] = self.get_ae_loss(input_features)
             losses["loss_clustering"] = self.get_clustering_loss(input_features, proposals)
