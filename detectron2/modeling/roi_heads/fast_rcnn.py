@@ -613,8 +613,11 @@ class FastRCNNOutputLayers(nn.Module):
 
         loss = self.hingeloss(distances, torch.tensor(labels).reshape((-1, self.num_classes+1)).cuda())
         if torch.isinf(loss):
-            logging.getLogger(__name__).info(f"Got an infinite cluster loss with {distances.shape} distances, {fg_features.shape} features, {cuda_means.shape} means")
-            logging.getLogger(__name__).info(f"gt classes: {gt_classes}")
+            logger = logging.getLogger(__name__)
+            logger.info(f"Got an infinite cluster loss with {distances.shape} distances, {fg_features.shape} features, {cuda_means.shape} means")
+            logger.info(f"Distances {distances}")
+            logger.info(f"Labels {labels}")
+            logger.info(f"gt classes: {gt_classes}")
             return torch.tensor(0.0).cuda()
 
             
