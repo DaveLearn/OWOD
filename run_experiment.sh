@@ -25,10 +25,15 @@ if [[ $1 = '--fast' ]]; then
     SUFFIX="_fast"
 fi
 
+if [[ $1 = '--mini' ]]; then
+    shift
+    SUFFIX="_mini"
+fi
+
 OUTDIR=$1
 
 if [[ -z $OUTDIR ]]; then
-    echo "Usage run_experiment.sh [--fast] <outputfolder>"
+    echo "Usage run_experiment.sh [--fast | --mini] <outputfolder>"
     exit 1
 fi
 
