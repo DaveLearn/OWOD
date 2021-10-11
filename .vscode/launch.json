@@ -12,14 +12,14 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Launch T1 Train Fast",
+            "name": "Launch T1 Train Mini",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/tools/train_net.py",
             "args": [
                 "--num-gpus", "1",
                 "--dist-url='tcp://127.0.0.1:52133'",
-                "--config-file", "./configs/OWOD/t1/t1_train_fast.yaml",
+                "--config-file", "./configs/OWOD/t1/t1_train_mini.yaml",
                 "OUTPUT_DIR", "./output/debug/t1"
             ],
             "env": {
@@ -48,6 +48,13 @@
                 "CUDA_HOME": "~/",
                 "PYTHONOPTIMIZE": "TRUE"
             }
+        },
+        { 
+            "name": "Python: Attach using Process Id", 
+            "type": "python", 
+            "request": "attach", 
+            "processId": "${command:pickProcess}",
+            "logToFile": true
         }
     ]
 }

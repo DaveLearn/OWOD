@@ -582,7 +582,7 @@ class FastRCNNOutputLayers(nn.Module):
             x = torch.flatten(x, start_dim=1)
         #scores = self.cls_score(x)
         
-        cls_x = torch.sigmoid(x)
+        cls_x = x  #F.normalize(x)
        
         
         #scores = F.softmax(l, dim=1)
@@ -594,7 +594,8 @@ class FastRCNNOutputLayers(nn.Module):
                     self.cls_score.bias[target] = self.cls_score.bias[target] + 1
 
         # update scores after updating average so we can get an idea of where we may start to drift
-        scores = -FastRCNNOutputLayers.log_loss(cls_x, self.cls_score.weight)
+        #scores = # -FastRCNNOutputLayers.log_loss(cls_x, self.cls_score.weight) 
+        scores = 1.0 / (torch.cdist(cls_x, self.cls_score.weight) + eps)
 
         proposal_deltas = self.bbox_pred(x)
         return scores, proposal_deltas
