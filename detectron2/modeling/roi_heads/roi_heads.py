@@ -465,12 +465,13 @@ class Res5ROIHeads(ROIHeads):
             proposals = self.label_and_sample_proposals(proposals, targets)
         del targets
 
+        objectness_logits = [x.objectness_logits for x in proposals]
         proposal_boxes = [x.proposal_boxes for x in proposals]
         box_features = self._shared_roi_transform(
             [features[f] for f in self.in_features], proposal_boxes
         )
         input_features = box_features.mean(dim=[2, 3])
-        predictions = self.box_predictor(input_features, proposals if self.training else None)
+        predictions = self.box_predictor(input_features, objectness_logits, proposals if self.training else None)
 
         if self.training:
             # self.log_features(input_features, proposals)

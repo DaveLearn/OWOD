@@ -565,7 +565,7 @@ class FastRCNNOutputLayers(nn.Module):
 
 
 
-    def forward(self, x, proposals=None):
+    def forward(self, x, objectness_logits, proposals=None):
         """
         Args:
             x: per-region features of shape (N, ...) for N bounding boxes to predict.
@@ -595,7 +595,19 @@ class FastRCNNOutputLayers(nn.Module):
 
         # update scores after updating average so we can get an idea of where we may start to drift
         #scores = # -FastRCNNOutputLayers.log_loss(cls_x, self.cls_score.weight) 
-        scores = 1.0 / (torch.cdist(cls_x, self.cls_score.weight) + eps)
+        scores = 1.0 / (torch.square(torch.cdist(cls_x, self.cls_score.weight)) + eps)
+        
+        
+        bgclassidx = self.num_classes
+        # object further than 0.00111 away from a class should have 0 probability
+        scores = F.threshold(scores, 0.00111, 0)
+        # if we aren't objecty enough, we shouldn't have any probability except for background
+        scores[torch.sigmoid(cat(objectness_logits)) < 0.5, :bgclassidx] = 0
+        # if we aren't anything, we must be background
+        scores[scores.max(dim=1).values == 0, bgclassidx] = 1
+
+
+        # update scores with backgrounds based on distance and objectness score
 
         proposal_deltas = self.bbox_pred(x)
         return scores, proposal_deltas
@@ -830,7 +842,12 @@ class FastRCNNOutputLayers(nn.Module):
         """
         scores, _ = predictions
         num_inst_per_image = [len(p) for p in proposals]
-        probs = F.softmax(scores, dim=-1)
+        #probs = F.softmax(scores, dim=-1)
+        # use normalize instead of softmax
+        probs = F.normalize(scores, p=1, dim=1)
+        
+
+
         return probs.split(num_inst_per_image, dim=0)
 
     # def clstr_loss(self, input_features, proposals):
