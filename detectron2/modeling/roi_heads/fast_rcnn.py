@@ -609,7 +609,7 @@ class FastRCNNOutputLayers(nn.Module):
         # if we are too far away from all other objects, we are "unknown"
         known_object_max = scores.max(dim=1).values
 
-        scores[known_object_max < 0.00111, bgclassidx-1] = torch.tensor(1.0) - known_object_max[known_object_max < 0.00111]
+        scores[known_object_max < 0.0111, bgclassidx-1] = torch.tensor(1.0) - known_object_max[known_object_max < 0.0111]
 
         # scores = F.threshold(scores, 0.00111, 0) I think this is done by a config at the NMS stage anyway
 
