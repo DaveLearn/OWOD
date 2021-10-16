@@ -597,14 +597,26 @@ class FastRCNNOutputLayers(nn.Module):
         #scores = # -FastRCNNOutputLayers.log_loss(cls_x, self.cls_score.weight) 
         scores = 1.0 / (torch.square(torch.cdist(cls_x, self.cls_score.weight)) + eps)
         
-        
+       
+
         bgclassidx = self.num_classes
-        # object further than 0.00111 away from a class should have 0 probability
-        scores = F.threshold(scores, 0.00111, 0)
+        
+        # don't use distance for unknown calc
+        scores[:, bgclassidx-1] = 0
+        # or for background
+        scores[:, bgclassidx] = 0
+        
+        # if we are too far away from all other objects, we are "unknown"
+        known_object_max = scores.max(dim=1).values
+
+        scores[known_object_max < 0.00111, bgclassidx-1] = torch.tensor(1.0) - known_object_max[known_object_max < 0.00111]
+
+        # scores = F.threshold(scores, 0.00111, 0) I think this is done by a config at the NMS stage anyway
+
         # if we aren't objecty enough, we shouldn't have any probability except for background
         scores[torch.sigmoid(cat(objectness_logits)) < 0.5, :bgclassidx] = 0
         # if we aren't anything, we must be background
-        scores[scores.max(dim=1).values == 0, bgclassidx] = 1
+        # scores[scores.max(dim=1).values == 0, bgclassidx] = 1
 
 
         # update scores with backgrounds based on distance and objectness score
@@ -844,7 +856,7 @@ class FastRCNNOutputLayers(nn.Module):
         num_inst_per_image = [len(p) for p in proposals]
         #probs = F.softmax(scores, dim=-1)
         # use normalize instead of softmax
-        probs = F.normalize(scores, p=1, dim=1)
+        probs = scores
         
 
 
