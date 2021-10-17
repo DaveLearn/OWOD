@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
 import logging
+from time import time
 import numpy as np
 import os
 import sys
@@ -15,9 +16,15 @@ from torch.distributions.weibull import Weibull
 from torch.distributions.transforms import AffineTransform
 from torch.distributions.transformed_distribution import TransformedDistribution
 from fvcore.common.file_io import PathManager
+from PIL import Image
 
 from detectron2.data import MetadataCatalog
+from detectron2.structures.instances import Instances
 from detectron2.utils import comm
+from detectron2.utils import visualizer
+from detectron2.utils.events import get_event_storage
+from detectron2.utils.visualizer import Visualizer
+from detectron2.data import detection_utils
 
 from .evaluator import DatasetEvaluator
 
@@ -41,6 +48,7 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         """
         self._dataset_name = dataset_name
         meta = MetadataCatalog.get(dataset_name)
+        self.meta = meta
         self._anno_file_template = os.path.join(meta.dirname, "Annotations", "{}.xml")
         self._image_set_path = os.path.join(meta.dirname, "ImageSets", "Main", meta.split + ".txt")
         self._class_names = meta.thing_classes
@@ -48,6 +56,9 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         self._is_2007 = False
         # self._is_2007 = meta.year == 2007
         self._cpu_device = torch.device("cpu")
+        self.result_samples = list()
+        self.max_samples = 25
+        self.samples_seen = 0
         self._logger = logging.getLogger(__name__)
         if cfg is not None:
             self.prev_intro_cls = cfg.OWOD.PREV_INTRODUCED_CLS
@@ -56,7 +67,7 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
             self.unknown_class_index = self.total_num_class - 1
             self.num_seen_classes = self.prev_intro_cls + self.curr_intro_cls
             self.known_classes = self._class_names[:self.num_seen_classes]
-
+            self.sample_save_location = os.path.join(cfg.OUTPUT_DIR, 'result_samples')
             param_save_location = os.path.join(cfg.OUTPUT_DIR,'energy_dist_' + str(self.num_seen_classes) + '.pkl')
             self.energy_distribution_loaded = False
             if os.path.isfile(param_save_location) and os.access(param_save_location, os.R_OK):
@@ -110,9 +121,45 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
                         cls[i] = self.unknown_class_index
             return cls
 
+    def sample_result_as_image(self, input, output):
+        self.samples_seen = self.samples_seen + 1
+
+        save_this_sample_prob = min(1, self.max_samples / self.samples_seen)
+        save_this_sample = torch.rand((1)) < save_this_sample_prob
+        if not save_this_sample:
+            return
+
+        visualizer = Visualizer(np.transpose(input['image'].numpy(), [2,1,0]), self.meta)
+        instances = output['instances'].to(torch.device("cpu"))
+        vis = visualizer.draw_instance_predictions(instances)
+        img = vis.get_image()
+        # image is [H, W, C]
+        img_entry = {
+            'name': input['image_id'],
+            'data': img 
+        }
+
+        if len(self.result_samples) < self.max_samples:
+            self.result_samples.append(img_entry)
+        if len(self.result_samples) >= self.max_samples:
+            idx = int(torch.rand((1)) * self.max_samples)
+            self.result_samples[idx] = img_entry
+
+    def save_samples_to_output_dir(self):
+        loc = self.sample_save_location
+        if loc is None: 
+            return
+        
+        loc = os.path.join(f'{int(time())} ')
+        os.makedirs(loc)
+        for sample in self.result_samples:
+            fname = os.path.join(loc, f'{sample["name"]}.png')
+            im = Image.fromarray(sample["data"])
+            im.save(fname)
 
     def process(self, inputs, outputs):
         for input, output in zip(inputs, outputs):
+            self.sample_result_as_image(input, output)
             image_id = input["image_id"]
             instances = output["instances"].to(self._cpu_device)
             boxes = instances.pred_boxes.tensor.numpy()
@@ -184,6 +231,7 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         Returns:
             dict: has a key "segm", whose value is a dict of "AP", "AP50", and "AP75".
         """
+        self.save_samples_to_output_dir()
         all_predictions = comm.gather(self._predictions, dst=0)
         if not comm.is_main_process():
             return

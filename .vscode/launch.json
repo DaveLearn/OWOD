@@ -38,10 +38,8 @@
                 "--num-gpus", "1",
                 "--eval-only",
                 "--config-file", "./configs/OWOD/t1/t1_test.yaml",
-                "SOLVER.IMS_PER_BATCH","8",
-                "SOLVER.BASE_LR", "0.005",
-                "OUTPUT_DIR", "./output/t1_final",
-                "MODEL.WEIGHTS", "./output/t1/model_final.pth"
+                "OUTPUT_DIR", "./output/ncm-cutoff-no-norm/t1_final",
+                "MODEL.WEIGHTS", "./output/ncm-cutoff-no-norm/t1/model_final.pth"
             ],
             "env": {
                 "CUDA_LAUNCH_BLOCKING": "1",
