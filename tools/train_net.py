@@ -154,7 +154,7 @@ def main(args):
     trainer = Trainer(cfg)
     trainer.resume_or_load(resume=args.resume)
     
-    if cfg.OWOD.FREEZE_LAYERS:
+    def freezelayers():
         logger = logging.getLogger("train_net.main")
         print("Freezing Layers...")
         # freeze all layers
@@ -170,6 +170,11 @@ def main(args):
                 for param in layer.parameters():
                     param.requires_grad = False
     
+
+    if cfg.OWOD.FREEZE_AND_MEAN_ITER > 0:
+        trainer.register_hooks(
+            [hooks.CallbackHook(before_step=lambda: trainer.iter == cfg.OWOD.FREEZE_AND_MEAN_ITER and freezelayers())]
+        )
 
     if cfg.TEST.AUG.ENABLED:
         trainer.register_hooks(

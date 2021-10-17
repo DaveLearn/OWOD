@@ -387,6 +387,7 @@ class Res5ROIHeads(ROIHeads):
         sampling_ratio    = cfg.MODEL.ROI_BOX_HEAD.POOLER_SAMPLING_RATIO
         self.mask_on      = cfg.MODEL.MASK_ON
         self.enable_clustering = cfg.OWOD.ENABLE_CLUSTERING
+      
         self.compute_energy_flag = cfg.OWOD.COMPUTE_ENERGY
         self.energy_save_path = os.path.join(cfg.OUTPUT_DIR, cfg.OWOD.ENERGY_SAVE_PATH)
         # fmt: on

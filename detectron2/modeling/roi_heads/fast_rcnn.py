@@ -427,6 +427,7 @@ class FastRCNNOutputLayers(nn.Module):
         curr_intro_cls,
         max_iterations,
         output_dir,
+        freeze_and_mean_iter,
         feat_store_path,
         margin,
         num_classes: int,
@@ -464,22 +465,30 @@ class FastRCNNOutputLayers(nn.Module):
         # prediction layer for num_classes foreground classes and one background class (hence + 1)
         self.cls_score = Linear(input_size, num_classes + 1)
         
-        # repurpose the last layer to track averages
-        torch.nn.init.zeros_(self.cls_score.weight)
-        torch.nn.init.zeros_(self.cls_score.bias)
-        for p in self.cls_score.parameters():
+        self.cls_mean = Linear(input_size, num_classes + 1)
+        self.cls_minmax = Linear(input_size, num_classes + 1)
+
+        self.freeze_and_mean_iter = freeze_and_mean_iter
+        # init the means
+        torch.nn.init.zeros_(self.cls_mean.weight)
+        torch.nn.init.zeros_(self.cls_mean.bias)
+        for p in self.cls_mean.parameters():
+            p.requires_grad = False
+
+        torch.nn.init.zeros_(self.cls_minmax.weight)
+        torch.nn.init.zeros_(self.cls_minmax.bias)
+        for p in self.cls_minmax.parameters():
             p.requires_grad = False
 
         num_bbox_reg_classes = 1 if cls_agnostic_bbox_reg else num_classes
         box_dim = len(box2box_transform.weights)
         self.bbox_pred = Linear(input_size, num_bbox_reg_classes * box_dim)
 
-       
-       # nn.init.normal_(self.cls_score.weight, std=0.01)
-
+        nn.init.normal_(self.cls_score.weight, std=0.01)
         nn.init.normal_(self.bbox_pred.weight, std=0.001)
-        for l in [self.bbox_pred]:
+        for l in [self.cls_score, self.bbox_pred]:
             nn.init.constant_(l.bias, 0)
+      
 
         self.box2box_transform = box2box_transform
         self.smooth_l1_beta = smooth_l1_beta
@@ -520,6 +529,9 @@ class FastRCNNOutputLayers(nn.Module):
             self.feature_store = Store(num_classes + 1, clustering_items_per_class)
         self.means = [None for _ in range(num_classes + 1)]
         self.margin = margin
+        self.pretraining = False
+
+
 
         # self.ae_model = AE(input_size, clustering_z_dimension)
         # self.ae_model.apply(Xavier)
@@ -550,6 +562,7 @@ class FastRCNNOutputLayers(nn.Module):
             "output_dir"            : cfg.OUTPUT_DIR,
             "feat_store_path"       : cfg.OWOD.FEATURE_STORE_SAVE_PATH,
             "margin"                : cfg.OWOD.CLUSTERING.MARGIN,
+            "freeze_and_mean_iter"  : cfg.OWOD.FREEZE_AND_MEAN_ITER
             # fmt: on
         }
 
@@ -582,45 +595,54 @@ class FastRCNNOutputLayers(nn.Module):
             x = torch.flatten(x, start_dim=1)
         #scores = self.cls_score(x)
         
-        cls_x = x  #F.normalize(x)
+        scores = None
        
+        # if we are warming up, then compute regular class score.
+        if self.training and self.freeze_and_mean_iter > 0:
+            storage = get_event_storage()
+
+            if storage.iter < self.freeze_and_mean_iter:
+                scores = self.cls_score(x)
         
-        #scores = F.softmax(l, dim=1)
-        
-        if proposals is not None:
-            for prop in proposals:
-                for idx, target in enumerate(prop.gt_classes):
-                    self.cls_score.weight[target] = (self.cls_score.weight[target] * self.cls_score.bias[target] + cls_x[idx])/(self.cls_score.bias[target] + 1)
-                    self.cls_score.bias[target] = self.cls_score.bias[target] + 1
-
-        # update scores after updating average so we can get an idea of where we may start to drift
-        #scores = # -FastRCNNOutputLayers.log_loss(cls_x, self.cls_score.weight) 
-        scores = 1.0 / (torch.square(torch.cdist(cls_x, self.cls_score.weight)) + eps)
-        
-       
-
-        bgclassidx = self.num_classes
-        
-        # don't use distance for unknown calc
-        scores[:, bgclassidx-1] = 0
-        # or for background
-        scores[:, bgclassidx] = 0
-        
-        # if we are too far away from all other objects, we are "unknown"
-        known_object_max = scores.max(dim=1).values
-
-        cutoff = 0.00111
-        #scores[known_object_max < cutoff, bgclassidx-1] = torch.tensor(1.0) - known_object_max[known_object_max < cutoff]
-
-        # scores = F.threshold(scores, 0.00111, 0) I think this is done by a config at the NMS stage anyway
-
-        # if we aren't objecty enough, we shouldn't have any probability except for background
-        scores[torch.sigmoid(cat(objectness_logits)) < 0.6, :bgclassidx] = 0
-        # if we aren't anything, we must be background
-        # scores[scores.max(dim=1).values == 0, bgclassidx] = 1
+        if scores is None:
+            cls_x = x  #F.normalize(x)
+            #scores = F.softmax(l, dim=1)
+            
+            if self.training and proposals is not None:
+                for prop in proposals:
+                    for idx, target in enumerate(prop.gt_classes):
+                        self.cls_mean.weight[target] = (self.cls_mean.weight[target] * self.cls_mean.bias[target] + cls_x[idx])/(self.cls_mean.bias[target] + 1)
+                        self.cls_mean.bias[target] = self.cls_mean.bias[target] + 1
+                        current_min = self.cls_minmax.weight[target]
+                        current_min[current_min > cls_x[idx]] = cls_x[idx]
+                        current_max = self.cls_minmax.bias[target]
+                        current_max[current_max < cls_x[idx]] = cls_x[idx]
 
 
-        # update scores with backgrounds based on distance and objectness score
+            # update scores after updating average so we can get an idea of where we may start to drift
+            #scores = # -FastRCNNOutputLayers.log_loss(cls_x, self.cls_score.weight) 
+            scores = 1.0 / (torch.square(torch.cdist(cls_x, self.cls_mean.weight)) + eps)
+
+            bgclassidx = self.num_classes
+            
+            # don't use distance for unknown calc
+            scores[:, bgclassidx-1] = 0
+            # or for background
+            scores[:, bgclassidx] = 0
+            
+            # if we are too far away from all other objects, we are "unknown"
+            #known_object_max = scores.max(dim=1).values
+
+            #cutoff = 0.00111
+            #scores[known_object_max < cutoff, bgclassidx-1] = torch.tensor(1.0) - known_object_max[known_object_max < cutoff]
+
+            # scores = F.threshold(scores, 0.00111, 0) I think this is done by a config at the NMS stage anyway
+
+            # if we aren't objecty enough, we shouldn't have any probability except for background
+            scores[torch.sigmoid(cat(objectness_logits)) < 0.6, :bgclassidx] = 0
+            # if we aren't anything, we must be background
+            # scores[scores.max(dim=1).values == 0, bgclassidx] = 1
+
 
         proposal_deltas = self.bbox_pred(x)
         return scores, proposal_deltas
