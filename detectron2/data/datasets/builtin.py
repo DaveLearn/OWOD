@@ -233,6 +233,7 @@ def register_all_pascal_voc(root):
         ("t4_voc_coco_2007_train", "VOC2007", "t4_train"),
         ("t4_voc_coco_2007_mini_train", "VOC2007", "t4_25pct_train"),
         ("t4_voc_coco_2007_ft", "VOC2007", "t4_ft"),
+        ("voc_2007_test_mini", "VOC2007", "t2_ft"),
     ]
     for name, dirname, split in SPLITS:
         year = 2007 if "2007" in name else 2012

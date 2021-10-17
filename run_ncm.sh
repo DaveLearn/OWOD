@@ -1,6 +1,6 @@
 #!/bin/bash
 
-$OUTDIR = /output/ncm-cutoff-no-norm/exp_$1
+OUTDIR=./output/ncm-cutoff-no-norm/exp_$1
 if [[ -e $OUTDIR ]]; then
        echo "$OUTDIR folder already exists! - aborting"
        exit 1

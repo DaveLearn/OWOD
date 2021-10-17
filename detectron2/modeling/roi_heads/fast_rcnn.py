@@ -609,12 +609,13 @@ class FastRCNNOutputLayers(nn.Module):
         # if we are too far away from all other objects, we are "unknown"
         known_object_max = scores.max(dim=1).values
 
-        scores[known_object_max < 0.0111, bgclassidx-1] = torch.tensor(1.0) - known_object_max[known_object_max < 0.0111]
+        cutoff = 0.00111
+        #scores[known_object_max < cutoff, bgclassidx-1] = torch.tensor(1.0) - known_object_max[known_object_max < cutoff]
 
         # scores = F.threshold(scores, 0.00111, 0) I think this is done by a config at the NMS stage anyway
 
         # if we aren't objecty enough, we shouldn't have any probability except for background
-        scores[torch.sigmoid(cat(objectness_logits)) < 0.5, :bgclassidx] = 0
+        scores[torch.sigmoid(cat(objectness_logits)) < 0.6, :bgclassidx] = 0
         # if we aren't anything, we must be background
         # scores[scores.max(dim=1).values == 0, bgclassidx] = 1
 
