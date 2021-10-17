@@ -466,7 +466,8 @@ class FastRCNNOutputLayers(nn.Module):
         self.cls_score = Linear(input_size, num_classes + 1)
         
         self.cls_mean = Linear(input_size, num_classes + 1)
-        self.cls_minmax = Linear(input_size, num_classes + 1)
+        self.cls_min = Linear(input_size, num_classes + 1)
+        self.cls_max = Linear(input_size, num_classes + 1)
 
         self.freeze_and_mean_iter = freeze_and_mean_iter
         # init the means
@@ -475,9 +476,13 @@ class FastRCNNOutputLayers(nn.Module):
         for p in self.cls_mean.parameters():
             p.requires_grad = False
 
-        torch.nn.init.zeros_(self.cls_minmax.weight)
-        torch.nn.init.zeros_(self.cls_minmax.bias)
-        for p in self.cls_minmax.parameters():
+        torch.nn.init.zeros_(self.cls_min.weight)
+        torch.nn.init.zeros_(self.cls_min.bias)
+        torch.nn.init.zeros_(self.cls_max.weight)
+        torch.nn.init.zeros_(self.cls_max.bias)
+        for p in self.cls_min.parameters():
+            p.requires_grad = False
+        for p in self.cls_max.parameters():
             p.requires_grad = False
 
         num_bbox_reg_classes = 1 if cls_agnostic_bbox_reg else num_classes
@@ -613,10 +618,10 @@ class FastRCNNOutputLayers(nn.Module):
                     for idx, target in enumerate(prop.gt_classes):
                         self.cls_mean.weight[target] = (self.cls_mean.weight[target] * self.cls_mean.bias[target] + cls_x[idx])/(self.cls_mean.bias[target] + 1)
                         self.cls_mean.bias[target] = self.cls_mean.bias[target] + 1
-                        current_min = self.cls_minmax.weight[target]
-                        current_min[current_min > cls_x[idx]] = cls_x[idx]
-                        current_max = self.cls_minmax.bias[target]
-                        current_max[current_max < cls_x[idx]] = cls_x[idx]
+                        current_min = self.cls_min.weight[target]
+                        current_min[current_min > cls_x[idx]] = cls_x[idx][current_min > cls_x[idx]]
+                        current_max = self.cls_max.weight[target]
+                        current_max[current_max < cls_x[idx]] = cls_x[idx][current_max < cls_x[idx]]
 
 
             # update scores after updating average so we can get an idea of where we may start to drift

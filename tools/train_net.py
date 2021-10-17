@@ -173,7 +173,7 @@ def main(args):
 
     if cfg.OWOD.FREEZE_AND_MEAN_ITER > 0:
         trainer.register_hooks(
-            [hooks.CallbackHook(before_step=lambda: trainer.iter == cfg.OWOD.FREEZE_AND_MEAN_ITER and freezelayers())]
+            [hooks.CallbackHook(before_step=lambda t: trainer.iter == cfg.OWOD.FREEZE_AND_MEAN_ITER and freezelayers())]
         )
 
     if cfg.TEST.AUG.ENABLED:
