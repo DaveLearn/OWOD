@@ -869,7 +869,7 @@ class Visualizer:
                 height,
                 fill=False,
                 edgecolor=edge_color,
-                linewidth=15,
+                linewidth=linewidth,
                 alpha=alpha,
                 linestyle=line_style,
             )

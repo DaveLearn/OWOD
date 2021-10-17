@@ -19,12 +19,8 @@ from fvcore.common.file_io import PathManager
 from PIL import Image
 
 from detectron2.data import MetadataCatalog
-from detectron2.structures.instances import Instances
 from detectron2.utils import comm
-from detectron2.utils import visualizer
-from detectron2.utils.events import get_event_storage
 from detectron2.utils.visualizer import Visualizer
-from detectron2.data import detection_utils
 
 from .evaluator import DatasetEvaluator
 
@@ -129,8 +125,15 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         if not save_this_sample:
             return
 
-        visualizer = Visualizer(np.transpose(input['image'].numpy(), [2,1,0]), self.meta)
+        visualizer = Visualizer(np.transpose(input['image'].numpy(), [1,2,0])[:,:,::-1], self.meta)
         instances = output['instances'].to(torch.device("cpu"))
+
+        # fix box size to match 'image' size
+        orig_height = input['height']
+        height = input['image'].shape[1]
+        scale = height / orig_height
+        instances.get('pred_boxes').scale(scale, scale)
+
         vis = visualizer.draw_instance_predictions(instances)
         img = vis.get_image()
         # image is [H, W, C]
@@ -150,11 +153,11 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         if loc is None: 
             return
         
-        loc = os.path.join(f'{int(time())} ')
-        os.makedirs(loc)
+        save_folder = os.path.join(loc, f'{int(time())}') # timestamp the folder since there may be multiple evals during training.
+        os.makedirs(save_folder, exist_ok=True)
         for sample in self.result_samples:
-            fname = os.path.join(loc, f'{sample["name"]}.png')
-            im = Image.fromarray(sample["data"])
+            fname = os.path.join(save_folder, f'{sample["name"]}.png')
+            im = Image.fromarray(sample["data"]) # our image data is in BGR
             im.save(fname)
 
     def process(self, inputs, outputs):
