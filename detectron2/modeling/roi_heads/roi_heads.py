@@ -458,7 +458,7 @@ class Res5ROIHeads(ROIHeads):
 
     def _shared_roi_transform(self, features, boxes):
         x = self.pooler(features, boxes)
-        return (self.res5(x), x)
+        return self.res5(x)
 
     def log_features(self, features, proposals):
         gt_classes = torch.cat([p.gt_classes for p in proposals])
@@ -473,6 +473,14 @@ class Res5ROIHeads(ROIHeads):
         location = os.path.join(self.energy_save_path, shortuuid.uuid() + '.pkl')
         torch.save(data, location)
 
+    def roi_to_box_features(self, roi_features):
+        return self.res5(roi_features)
+
+    def generate_proposals_from_replay(self, num_instances):
+        valid_classes = range(self.box_predictor.prev_intro_cls)
+        # TODO: generate "fake" proposals here.
+        return []
+        
     def forward(self, images, features, proposals, targets=None):
         """
         See :meth:`ROIHeads.forward`.
@@ -484,10 +492,22 @@ class Res5ROIHeads(ROIHeads):
             proposals = self.label_and_sample_proposals(proposals, targets)
         del targets
 
+       
+
+        if self.training and self.enable_replay:
+            og_proposals = proposals.copy()
+            classes = torch.cat([p.gt_classes for p in proposals])
+            fg_classes = classes[classes < self.num_classes]
+            # we want to pad fg classes to half of seen classes
+            target_fg = len(classes) // 2
+            needed_fg = target_fg - fg_classes
+            if (needed_fg > 0):
+                proposals.extend(self.generate_proposals_from_replay(needed_fg))
+        
         proposal_boxes = [x.proposal_boxes for x in proposals]
-        box_features, roi_features = self._shared_roi_transform(
-            [features[f] for f in self.in_features], proposal_boxes
-        )
+        roi_features = self.pooler([features[f] for f in self.in_features], proposal_boxes)
+        box_features = self.roi_to_box_features(roi_features)
+
         input_features = box_features.mean(dim=[2, 3])
         predictions = self.box_predictor(input_features)
 
@@ -497,7 +517,7 @@ class Res5ROIHeads(ROIHeads):
                 self.box_predictor.update_feature_store(input_features, proposals)
 
             if self.enable_replay:
-                self.update_replay_store(roi_features, proposals)
+                self.update_replay_store(roi_features, og_proposals)
 
             del features
             if self.compute_energy_flag:
@@ -565,7 +585,7 @@ class Res5ROIHeads(ROIHeads):
 
         if self.mask_on:
             features = [features[f] for f in self.in_features]
-            x, _ = self._shared_roi_transform(features, [x.pred_boxes for x in instances])
+            x = self._shared_roi_transform(features, [x.pred_boxes for x in instances])
             return self.mask_head(x, instances)
         else:
             return instances
