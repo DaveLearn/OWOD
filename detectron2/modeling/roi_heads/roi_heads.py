@@ -476,10 +476,26 @@ class Res5ROIHeads(ROIHeads):
     def roi_to_box_features(self, roi_features):
         return self.res5(roi_features)
 
+   
     def generate_proposals_from_replay(self, num_instances):
         valid_classes = range(self.box_predictor.prev_intro_cls)
-        # TODO: generate "fake" proposals here.
-        return []
+        # the slow way until we can prove it works (no point optimising prematurely)
+        extra_proposals = []
+        extra_features = []
+
+        valid_replay_items = [(cls, tpl) for cls in valid_classes for tpl in self.replay_store.retrieve(cls)]
+        num_to_gen = min(num_instances, len(valid_replay_items))
+
+        selections = np.random.permutation(np.arange(len(valid_replay_items)))
+
+        for idx in range(num_to_gen):
+            cls, data = valid_replay_items[selections[idx]]
+            feature,box,size = data
+            inst = Instances(size, gt_classes=torch.tensor([cls]).to(box.device), proposal_boxes=Boxes(box.unsqueeze(dim=0)), gt_boxes=Boxes(box.unsqueeze(dim=0)))
+            extra_proposals.append(inst)
+            extra_features.append(feature.unsqueeze(dim=0))
+
+        return extra_proposals, cat(extra_features)
         
     def forward(self, images, features, proposals, targets=None):
         """
@@ -492,20 +508,25 @@ class Res5ROIHeads(ROIHeads):
             proposals = self.label_and_sample_proposals(proposals, targets)
         del targets
 
+        proposal_boxes = [x.proposal_boxes for x in proposals]
+        roi_features = self.pooler([features[f] for f in self.in_features], proposal_boxes)
        
+        og_proposals = []
+        og_roi = []
 
         if self.training and self.enable_replay:
             og_proposals = proposals.copy()
+            og_roi = roi_features.clone().detach()
             classes = torch.cat([p.gt_classes for p in proposals])
             fg_classes = classes[classes < self.num_classes]
             # we want to pad fg classes to half of seen classes
             target_fg = len(classes) // 2
-            needed_fg = target_fg - fg_classes
+            needed_fg = target_fg - len(fg_classes)
             if (needed_fg > 0):
-                proposals.extend(self.generate_proposals_from_replay(needed_fg))
+                extra_proposals, extra_features = self.generate_proposals_from_replay(needed_fg)
+                proposals.extend(extra_proposals)
+                roi_features = cat([roi_features, extra_features])
         
-        proposal_boxes = [x.proposal_boxes for x in proposals]
-        roi_features = self.pooler([features[f] for f in self.in_features], proposal_boxes)
         box_features = self.roi_to_box_features(roi_features)
 
         input_features = box_features.mean(dim=[2, 3])
@@ -517,7 +538,7 @@ class Res5ROIHeads(ROIHeads):
                 self.box_predictor.update_feature_store(input_features, proposals)
 
             if self.enable_replay:
-                self.update_replay_store(roi_features, og_proposals)
+                self.update_replay_store(og_roi, og_proposals)
 
             del features
             if self.compute_energy_flag:

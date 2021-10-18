@@ -22,7 +22,7 @@ class StoreRandomSample:
             
             class_store = self.store[class_id]
             feature, box, size = items[idx]
-            item = (feature.clone(), box.clone(), size)
+            item = (feature.detach().clone(), box.detach().clone(), size)
             if (len(class_store)) < self.items_per_class:
                 class_store.append(item)
             else:

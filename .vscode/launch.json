@@ -12,15 +12,16 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Launch T1 Train Fast",
+            "name": "Launch T2 Train Fast",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/tools/train_net.py",
             "args": [
                 "--num-gpus", "1",
                 "--dist-url='tcp://127.0.0.1:52133'",
-                "--config-file", "./configs/OWOD/t1/t1_train_mini.yaml",
-                "OUTPUT_DIR", "./output/debug/t1"
+                "--config-file", "./configs/OWOD/t2/t2_train_mini.yaml",
+                "OUTPUT_DIR", "./output/replay-mini/t2",
+                "MODEL.WEIGHTS", "./output/replay-mini/t1/model_final.pth"
             ],
             "env": {
                 "CUDA_LAUNCH_BLOCKING": "0",
