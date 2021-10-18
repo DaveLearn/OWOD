@@ -486,6 +486,9 @@ class Res5ROIHeads(ROIHeads):
         valid_replay_items = [(cls, tpl) for cls in valid_classes for tpl in self.replay_store.retrieve(cls)]
         num_to_gen = min(num_instances, len(valid_replay_items))
 
+        if num_to_gen == 0:
+            return None, None
+
         selections = np.random.permutation(np.arange(len(valid_replay_items)))
 
         for idx in range(num_to_gen):
@@ -495,6 +498,7 @@ class Res5ROIHeads(ROIHeads):
             extra_proposals.append(inst)
             extra_features.append(feature.unsqueeze(dim=0))
 
+  
         return extra_proposals, cat(extra_features)
         
     def forward(self, images, features, proposals, targets=None):
@@ -518,14 +522,15 @@ class Res5ROIHeads(ROIHeads):
             og_proposals = proposals.copy()
             og_roi = roi_features.clone().detach()
             classes = torch.cat([p.gt_classes for p in proposals])
-            fg_classes = classes[classes < self.num_classes]
+            # fg_classes = classes[classes < self.num_classes]
             # we want to pad fg classes to half of seen classes
             target_fg = len(classes) // 2
-            needed_fg = target_fg - len(fg_classes)
-            if (needed_fg > 0):
+            needed_fg = target_fg  #- len(fg_classes)
+            if (self.box_predictor.prev_intro_cls > 0 and needed_fg > 0):
                 extra_proposals, extra_features = self.generate_proposals_from_replay(needed_fg)
-                proposals.extend(extra_proposals)
-                roi_features = cat([roi_features, extra_features])
+                if (extra_features is not None and extra_proposals is not None):
+                    proposals.extend(extra_proposals)
+                    roi_features = cat([roi_features, extra_features])
         
         box_features = self.roi_to_box_features(roi_features)
 
