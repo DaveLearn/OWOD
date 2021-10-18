@@ -13,10 +13,12 @@ from torch import nn
 
 from detectron2.config import configurable
 from detectron2.layers import ShapeSpec, nonzero_tuple
+from detectron2.layers.wrappers import cat
 from detectron2.structures import Boxes, ImageList, Instances, pairwise_iou
 from detectron2.utils.events import get_event_storage
 from detectron2.utils.registry import Registry
 from detectron2.utils.store_random_sample import StoreRandomSample
+from detectron2.utils import comm
 
 from ..backbone.resnet import BottleneckBlock, ResNet
 from ..matcher import Matcher
@@ -519,27 +521,30 @@ class Res5ROIHeads(ROIHeads):
             pred_instances = self.forward_with_given_boxes(features, pred_instances)
             return pred_instances, {}
 
+    def persist_replay_store(self):
+        os.makedirs(self.replay_store_path, exist_ok=True)
+        torch.save(self.replay_store, self.replay_store_file)
+        self.replay_store_is_saved = True
+        logging.getLogger(__name__).info('Replay store persisted to '+self.replay_store_file)
+
     def update_replay_store(self, roi_features, proposals):
         sizes = [size for proposal in proposals for size in [proposal.image_size]*len(proposal.gt_classes)]
         
-        gt_classes = torch.cat([p.gt_classes for p in proposals])
+        gt_classes = cat([p.gt_classes for p in proposals])
         fg_inds = gt_classes < self.num_classes
 
         fg_classes = gt_classes[fg_inds]
-        fg_sizes = sizes[fg_inds]
-        fg_boxes = [gt_box.clone() for gt_box in torch.cat([p.gt_boxes.tensor() for p in proposals])[fg_inds]]
-        fg_features = [roi_feature.clone() for roi_feature in roi_features[fg_inds].detach()]
+        fg_sizes = [x for idx,x in enumerate(sizes) if fg_inds[idx] == True]
+        fg_boxes = cat([p.gt_boxes.tensor for p in proposals])[fg_inds]
+        fg_features = roi_features[fg_inds]
         
-        replay_items = zip(fg_features, fg_boxes, fg_sizes)
+        replay_items = list(zip(fg_features, fg_boxes, fg_sizes))
         self.replay_store.add(replay_items, fg_classes)
 
         storage = get_event_storage()
-        if storage.iter == self.max_iterations-1 and self.replay_store_is_saved is False and comm.is_main_process():
+        if storage.iter == self.box_predictor.max_iterations - 1 and self.replay_store_is_saved is False and comm.is_main_process():
             logging.getLogger(__name__).info('Saving replay store at iteration ' + str(storage.iter) + ' to ' + self.replay_store_file)
-            os.makedirs(self.replay_store_path, exist_ok=True)
-            torch.save(self.replay_store, self.replay_store_file)
-            self.replay_store_is_saved = True
-
+            self.persist_replay_store()
 
     def forward_with_given_boxes(self, features, instances):
         """

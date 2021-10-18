@@ -10,10 +10,10 @@ class StoreRandomSample:
         self.seen = [0 for _ in range(self.total_num_classes)]
 
     def add(self, items, class_ids):
-    
         for idx, class_id in enumerate(class_ids):
             if class_id >= self.total_num_classes:
-                continue        
+                continue       
+            self.seen[class_id] = self.seen[class_id] + 1
             save_this_sample_prob = min(1, self.items_per_class / self.seen[class_id])
             save_this_sample = random.random() < save_this_sample_prob
             
@@ -21,26 +21,24 @@ class StoreRandomSample:
                 continue
             
             class_store = self.store[class_id]
+            feature, box, size = items[idx]
+            item = (feature.clone(), box.clone(), size)
             if (len(class_store)) < self.items_per_class:
-                class_store.append(items[idx])
+                class_store.append(item)
             else:
                 # replace one randomly
-                class_store[random.randint(0, self.items_per_class - 1)] = items[idx]
+                class_store[random.randint(0, self.items_per_class - 1)] = item
 
     def retrieve(self, class_id):
         if class_id != -1:
-            items = []
-            for item in self.store[class_id]:
-                items.extend(list(item))
+            items = [item for item in self.store[class_id]]
             if self.shuffle:
                 random.shuffle(items)
             return items
         else:
             all_items = []
             for i in range(self.total_num_classes):
-                items = []
-                for item in self.store[i]:
-                    items.append(list(item))
+                items = [item for item in self.store[i]]
                 all_items.append(items)
             return all_items
 

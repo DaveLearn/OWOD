@@ -19,11 +19,11 @@
             "args": [
                 "--num-gpus", "1",
                 "--dist-url='tcp://127.0.0.1:52133'",
-                "--config-file", "./configs/OWOD/t1/t1_train_fast.yaml",
+                "--config-file", "./configs/OWOD/t1/t1_train_mini.yaml",
                 "OUTPUT_DIR", "./output/debug/t1"
             ],
             "env": {
-                "CUDA_LAUNCH_BLOCKING": "1",
+                "CUDA_LAUNCH_BLOCKING": "0",
                 "CUDA_HOME": "~/",
                 "PYTHONOPTIMIZE": "TRUE"
             }
