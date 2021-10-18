@@ -16,6 +16,7 @@ from detectron2.layers import ShapeSpec, nonzero_tuple
 from detectron2.structures import Boxes, ImageList, Instances, pairwise_iou
 from detectron2.utils.events import get_event_storage
 from detectron2.utils.registry import Registry
+from detectron2.utils.store_random_sample import StoreRandomSample
 
 from ..backbone.resnet import BottleneckBlock, ResNet
 from ..matcher import Matcher
@@ -380,6 +381,7 @@ class Res5ROIHeads(ROIHeads):
         super().__init__(cfg)
 
         # fmt: off
+        # self.num_classes  = cfg.MODEL.ROI_HEADS.NUM_CLASSES
         self.in_features  = cfg.MODEL.ROI_HEADS.IN_FEATURES
         pooler_resolution = cfg.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION
         pooler_type       = cfg.MODEL.ROI_BOX_HEAD.POOLER_TYPE
@@ -387,6 +389,8 @@ class Res5ROIHeads(ROIHeads):
         sampling_ratio    = cfg.MODEL.ROI_BOX_HEAD.POOLER_SAMPLING_RATIO
         self.mask_on      = cfg.MODEL.MASK_ON
         self.enable_clustering = cfg.OWOD.ENABLE_CLUSTERING
+        self.enable_replay = cfg.OWOD.ENABLE_REPLAY
+        self.replay_items_per_class = cfg.OWOD.REPLAY.ITEMS_PER_CLASS
         self.compute_energy_flag = cfg.OWOD.COMPUTE_ENERGY
         self.energy_save_path = os.path.join(cfg.OUTPUT_DIR, cfg.OWOD.ENERGY_SAVE_PATH)
         # fmt: on
@@ -410,6 +414,19 @@ class Res5ROIHeads(ROIHeads):
                 cfg,
                 ShapeSpec(channels=out_channels, width=pooler_resolution, height=pooler_resolution),
             )
+
+        
+        self.replay_store_path = os.path.join(cfg.OUTPUT_DIR, 'replay_store')
+        self.replay_store_file = os.path.join(self.replay_store_path, 'replay.pt')
+        self.replay_store_is_saved = False
+
+        if os.path.isfile(self.replay_store_file):
+            logging.getLogger(__name__).info('Trying to load replay store from ' + self.replay_store_file)
+            self.replay_store = torch.load(self.replay_store_file)
+        else:
+            logging.getLogger(__name__).info('Replay store not found in ' +
+                                             self.replay_store_file + '. Creating new replay store.')
+            self.replay_store = StoreRandomSample(self.num_classes + 1, self.replay_items_per_class, shuffle=True)
 
     def _build_res5_block(self, cfg):
         # fmt: off
@@ -439,7 +456,7 @@ class Res5ROIHeads(ROIHeads):
 
     def _shared_roi_transform(self, features, boxes):
         x = self.pooler(features, boxes)
-        return self.res5(x)
+        return (self.res5(x), x)
 
     def log_features(self, features, proposals):
         gt_classes = torch.cat([p.gt_classes for p in proposals])
@@ -466,7 +483,7 @@ class Res5ROIHeads(ROIHeads):
         del targets
 
         proposal_boxes = [x.proposal_boxes for x in proposals]
-        box_features = self._shared_roi_transform(
+        box_features, roi_features = self._shared_roi_transform(
             [features[f] for f in self.in_features], proposal_boxes
         )
         input_features = box_features.mean(dim=[2, 3])
@@ -476,10 +493,15 @@ class Res5ROIHeads(ROIHeads):
             # self.log_features(input_features, proposals)
             if self.enable_clustering:
                 self.box_predictor.update_feature_store(input_features, proposals)
+
+            if self.enable_replay:
+                self.update_replay_store(roi_features, proposals)
+
             del features
             if self.compute_energy_flag:
                 self.compute_energy(predictions, proposals)
             losses = self.box_predictor.losses(predictions, proposals, input_features)
+
             if self.mask_on:
                 proposals, fg_selection_masks = select_foreground_proposals(
                     proposals, self.num_classes
@@ -496,6 +518,28 @@ class Res5ROIHeads(ROIHeads):
             pred_instances, _ = self.box_predictor.inference(predictions, proposals)
             pred_instances = self.forward_with_given_boxes(features, pred_instances)
             return pred_instances, {}
+
+    def update_replay_store(self, roi_features, proposals):
+        sizes = [size for proposal in proposals for size in [proposal.image_size]*len(proposal.gt_classes)]
+        
+        gt_classes = torch.cat([p.gt_classes for p in proposals])
+        fg_inds = gt_classes < self.num_classes
+
+        fg_classes = gt_classes[fg_inds]
+        fg_sizes = sizes[fg_inds]
+        fg_boxes = [gt_box.clone() for gt_box in torch.cat([p.gt_boxes.tensor() for p in proposals])[fg_inds]]
+        fg_features = [roi_feature.clone() for roi_feature in roi_features[fg_inds].detach()]
+        
+        replay_items = zip(fg_features, fg_boxes, fg_sizes)
+        self.replay_store.add(replay_items, fg_classes)
+
+        storage = get_event_storage()
+        if storage.iter == self.max_iterations-1 and self.replay_store_is_saved is False and comm.is_main_process():
+            logging.getLogger(__name__).info('Saving replay store at iteration ' + str(storage.iter) + ' to ' + self.replay_store_file)
+            os.makedirs(self.replay_store_path, exist_ok=True)
+            torch.save(self.replay_store, self.replay_store_file)
+            self.replay_store_is_saved = True
+
 
     def forward_with_given_boxes(self, features, instances):
         """
@@ -516,7 +560,7 @@ class Res5ROIHeads(ROIHeads):
 
         if self.mask_on:
             features = [features[f] for f in self.in_features]
-            x = self._shared_roi_transform(features, [x.pred_boxes for x in instances])
+            x, _ = self._shared_roi_transform(features, [x.pred_boxes for x in instances])
             return self.mask_head(x, instances)
         else:
             return instances

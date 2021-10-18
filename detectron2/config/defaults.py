@@ -619,6 +619,9 @@ _C.OWOD.ENERGY_SAVE_PATH = ''
 _C.OWOD.SKIP_TRAINING_WHILE_EVAL = False
 _C.OWOD.FEATURE_STORE_SAVE_PATH = ''
 _C.OWOD.TEMPERATURE = 1.5
+_C.OWOD.ENABLE_REPLAY = False
+_C.OWOD.REPLAY = CN()
+_C.OWOD.REPLAY.ITEMS_PER_CLASS = 10
 
 
 # ---------------------------------------------------------------------------- #
