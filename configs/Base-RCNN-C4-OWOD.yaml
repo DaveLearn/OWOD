@@ -7,7 +7,7 @@ MODEL:
     #    NUM_CLASSES: 81 # 0-79 Known class; 80 -> Unknown; 81 -> Background.
     NUM_CLASSES: 81
     NAME: "Res5ROIHeads"
-    SCORE_THRESH_TEST: 0.00111
+    SCORE_THRESH_TEST: 0.004
   WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
   MASK_ON: False
   RESNETS:
@@ -35,6 +35,7 @@ OWOD:
   ENABLE_CLUSTERING: False
   FEATURE_STORE_SAVE_PATH: 'feature_store'
   FREEZE_AND_MEAN_ITER: 0
+  MAX_DIST_ITER: 0
   FREEZE_LAYERS: False
   CLUSTERING:
     ITEMS_PER_CLASS: 20

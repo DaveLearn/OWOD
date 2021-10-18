@@ -428,6 +428,7 @@ class FastRCNNOutputLayers(nn.Module):
         max_iterations,
         output_dir,
         freeze_and_mean_iter,
+        max_dist_iter,
         feat_store_path,
         margin,
         num_classes: int,
@@ -470,6 +471,7 @@ class FastRCNNOutputLayers(nn.Module):
         self.cls_max = Linear(input_size, num_classes + 1)
 
         self.freeze_and_mean_iter = freeze_and_mean_iter
+        self.max_dist_iter = max_dist_iter
         # init the means
         torch.nn.init.zeros_(self.cls_mean.weight)
         torch.nn.init.zeros_(self.cls_mean.bias)
@@ -512,6 +514,7 @@ class FastRCNNOutputLayers(nn.Module):
 
         self.hingeloss = nn.HingeEmbeddingLoss(2)
         self.enable_clustering = enable_clustering
+        
 
         self.prev_intro_cls = prev_intro_cls
         self.curr_intro_cls = curr_intro_cls
@@ -567,7 +570,8 @@ class FastRCNNOutputLayers(nn.Module):
             "output_dir"            : cfg.OUTPUT_DIR,
             "feat_store_path"       : cfg.OWOD.FEATURE_STORE_SAVE_PATH,
             "margin"                : cfg.OWOD.CLUSTERING.MARGIN,
-            "freeze_and_mean_iter"  : cfg.OWOD.FREEZE_AND_MEAN_ITER
+            "freeze_and_mean_iter"  : cfg.OWOD.FREEZE_AND_MEAN_ITER,
+            "max_dist_iter"         : cfg.OWOD.MAX_DIST_ITER
             # fmt: on
         }
 
@@ -614,14 +618,22 @@ class FastRCNNOutputLayers(nn.Module):
             #scores = F.softmax(l, dim=1)
             
             if self.training and proposals is not None:
+                calc_max_dist = self.max_dist_iter > 0 and self.max_dist_iter <= get_event_storage().iter                 
+
                 for prop in proposals:
                     for idx, target in enumerate(prop.gt_classes):
-                        self.cls_mean.weight[target] = (self.cls_mean.weight[target] * self.cls_mean.bias[target] + cls_x[idx])/(self.cls_mean.bias[target] + 1)
-                        self.cls_mean.bias[target] = self.cls_mean.bias[target] + 1
-                        current_min = self.cls_min.weight[target]
-                        current_min[current_min > cls_x[idx]] = cls_x[idx][current_min > cls_x[idx]]
-                        current_max = self.cls_max.weight[target]
-                        current_max[current_max < cls_x[idx]] = cls_x[idx][current_max < cls_x[idx]]
+                        # either calc max dist from mean, or mean
+                        if calc_max_dist:
+                            dist = torch.cdist(cls_x, self.cls_mean.weight)
+                            if self.cls_max.bias[target] < dist:
+                                self.cls_max.bias[target] = dist
+                        else:
+                            self.cls_mean.weight[target] = (self.cls_mean.weight[target] * self.cls_mean.bias[target] + cls_x[idx])/(self.cls_mean.bias[target] + 1)
+                            self.cls_mean.bias[target] = self.cls_mean.bias[target] + 1
+                            current_min = self.cls_min.weight[target]
+                            current_min[current_min > cls_x[idx]] = cls_x[idx][current_min > cls_x[idx]]
+                            current_max = self.cls_max.weight[target]
+                            current_max[current_max < cls_x[idx]] = cls_x[idx][current_max < cls_x[idx]]
 
 
             # update scores after updating average so we can get an idea of where we may start to drift
@@ -636,15 +648,16 @@ class FastRCNNOutputLayers(nn.Module):
             scores[:, bgclassidx] = 0
             
             # if we are too far away from all other objects, we are "unknown"
-            #known_object_max = scores.max(dim=1).values
+            known_object_max = scores.max(dim=1).values
+        
+            cutoff = 0.0042
+            scores[(known_object_max < cutoff) & (torch.sigmoid(cat(objectness_logits)) > 0.7), bgclassidx-1] = cutoff+0.001
+            #scores[known_object_max < cutoff, :bgclassidx-1] = 0
 
-            #cutoff = 0.00111
-            #scores[known_object_max < cutoff, bgclassidx-1] = torch.tensor(1.0) - known_object_max[known_object_max < cutoff]
-
-            # scores = F.threshold(scores, 0.00111, 0) I think this is done by a config at the NMS stage anyway
+            #scores = F.threshold(scores, 0.00111, 0) I think this is done by a config at the NMS stage anyway
 
             # if we aren't objecty enough, we shouldn't have any probability except for background
-            scores[torch.sigmoid(cat(objectness_logits)) < 0.6, :bgclassidx] = 0
+            scores[torch.sigmoid(cat(objectness_logits)) < 0.5, :bgclassidx] = 0
             # if we aren't anything, we must be background
             # scores[scores.max(dim=1).values == 0, bgclassidx] = 1
 

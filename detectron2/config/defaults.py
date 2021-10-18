@@ -621,6 +621,7 @@ _C.OWOD.FEATURE_STORE_SAVE_PATH = ''
 _C.OWOD.TEMPERATURE = 1.5
 _C.OWOD.FREEZE_AND_MEAN_ITER = 0
 _C.OWOD.FREEZE_LAYERS = False
+_C.OWOD.MAX_DIST_ITER = 0
 
 
 # ---------------------------------------------------------------------------- #
