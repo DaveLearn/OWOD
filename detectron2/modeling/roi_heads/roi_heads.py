@@ -525,7 +525,7 @@ class Res5ROIHeads(ROIHeads):
             fg_classes = classes[classes < self.num_classes]
             # we want to pad fg classes to half of seen classes
             #target_fg = len(classes) // 2
-            needed_fg = len(fg_classes) #target_fg  #- len(fg_classes)
+            needed_fg = 1 #len(fg_classes) #target_fg  #- len(fg_classes)
             if (self.box_predictor.prev_intro_cls > 0 and needed_fg > 0):
                 extra_proposals, extra_features = self.generate_proposals_from_replay(needed_fg)
                 if (extra_features is not None and extra_proposals is not None):
