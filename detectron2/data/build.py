@@ -272,7 +272,7 @@ def get_detection_dataset_dicts(
     assert len(dataset_dicts), "No valid data found in {}.".format(",".join(dataset_names))
     return dataset_dicts
 
-def remove_prev_class_and_unk_instances_range(prev, curr, dataset_dict):
+def remove_prev_class_and_unk_instances_range(prev, curr, dataset_dicts):
     # For training data.
     prev_intro_cls = prev
     curr_intro_cls = curr
@@ -281,13 +281,13 @@ def remove_prev_class_and_unk_instances_range(prev, curr, dataset_dict):
     logger = logging.getLogger(__name__)
     logger.info("Valid classes: " + str(valid_classes))
     logger.info("Removing earlier seen class objects and the unknown objects...")
+    for entry in copy.copy(dataset_dicts):
+        annos = entry["annotations"]
+        for annotation in copy.copy(annos):
+            if annotation["category_id"] not in valid_classes:
+               annos.remove(annotation)
 
-    annos = dataset_dict["annotations"]
-    for annotation in copy.copy(annos):
-        if annotation["category_id"] not in valid_classes:
-            annos.remove(annotation)
-
-    return dataset_dict
+    return dataset_dicts
 
 
 def remove_prev_class_and_unk_instances(cfg, dataset_dicts):
