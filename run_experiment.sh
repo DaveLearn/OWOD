@@ -87,16 +87,16 @@ task_2 () {
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t2/t2_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t2" MODEL.WEIGHTS "$OUTDIR/t2/model_final.pth"
 
     clean_folder "$OUTDIR"/t2
-    cp -r -T "$OUTDIR"/t2 "$OUTDIR"/t2_ft
+    #cp -r -T "$OUTDIR"/t2 "$OUTDIR"/t2_ft
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t2/t2_ft${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t2_ft" MODEL.WEIGHTS "$OUTDIR/t2_ft/model_final.pth"
+    #python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t2/t2_ft${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t2_ft" MODEL.WEIGHTS "$OUTDIR/t2_ft/model_final.pth"
     
-    clean_folder "$OUTDIR"/t2_ft
+    #clean_folder "$OUTDIR"/t2_ft
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t2/t2_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "$OUTDIR/t2_final" MODEL.WEIGHTS "$OUTDIR/t2_ft/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t2/t2_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "$OUTDIR/t2_final" MODEL.WEIGHTS "$OUTDIR/t2/model_final.pth"
     
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t2_final/log.txt
-    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t2/t2_test.yaml OUTPUT_DIR "$OUTDIR/t2_final" MODEL.WEIGHTS "$OUTDIR/t2_ft/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t2/t2_test.yaml OUTPUT_DIR "$OUTDIR/t2_final" MODEL.WEIGHTS "$OUTDIR/t2/model_final.pth"
 
     collect_stats "$OUTDIR"/t2_final
 }
@@ -114,16 +114,16 @@ task_3 () {
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t3/t3_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t3" MODEL.WEIGHTS "$OUTDIR/t3/model_final.pth"
 
     clean_folder "$OUTDIR"/t3
-    cp -r "$OUTDIR"/t3 "$OUTDIR"/t3_ft
+    #cp -r "$OUTDIR"/t3 "$OUTDIR"/t3_ft
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t3/t3_ft${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t3_ft" MODEL.WEIGHTS "$OUTDIR/t3_ft/model_final.pth"
+    #python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t3/t3_ft${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t3_ft" MODEL.WEIGHTS "$OUTDIR/t3_ft/model_final.pth"
     
-    clean_folder "$OUTDIR"/t3_ft
+    #clean_folder "$OUTDIR"/t3_ft
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t3/t3_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "$OUTDIR/t3_final" MODEL.WEIGHTS "$OUTDIR/t3_ft/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52133' --config-file ./configs/OWOD/t3/t3_val.yaml OWOD.TEMPERATURE 1.5 OUTPUT_DIR "$OUTDIR/t3_final" MODEL.WEIGHTS "$OUTDIR/t3/model_final.pth"
 
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t3_final/log.txt
-    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t3/t3_test.yaml OUTPUT_DIR "$OUTDIR/t3_final" MODEL.WEIGHTS "$OUTDIR/t3_ft/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t3/t3_test.yaml OUTPUT_DIR "$OUTDIR/t3_final" MODEL.WEIGHTS "$OUTDIR/t3/model_final.pth"
 
     collect_stats "$OUTDIR"/t3_final
 }
@@ -142,18 +142,19 @@ task_4 () {
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t4/t4_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t4" MODEL.WEIGHTS "$OUTDIR/t4/model_final.pth"
 
     clean_folder "$OUTDIR"/t4
-    cp -r "$OUTDIR"/t4 "$OUTDIR"/t4_ft
+    #cp -r "$OUTDIR"/t4 "$OUTDIR"/t4_ft
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t4/t4_ft${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t4_ft" MODEL.WEIGHTS "$OUTDIR/t4_ft/model_final.pth"
+    #python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52126' --config-file ./configs/OWOD/t4/t4_ft${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t4_ft" MODEL.WEIGHTS "$OUTDIR/t4_ft/model_final.pth"
     
-    clean_folder "$OUTDIR"/t4_ft
+   # clean_folder "$OUTDIR"/t4_ft
 
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t4_final/log.txt
-    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t4/t4_test.yaml OUTPUT_DIR "$OUTDIR/t4_final" MODEL.WEIGHTS "$OUTDIR/t4_ft/model_final.pth"
+    python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t4/t4_test.yaml OUTPUT_DIR "$OUTDIR/t4_final" MODEL.WEIGHTS "$OUTDIR/t4/model_final.pth"
     
     collect_stats "$OUTDIR"/t4_final
 }
 
+set -e
 #task_1
 task_2
 task_3
