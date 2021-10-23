@@ -109,7 +109,7 @@ task_3 () {
     fi
 
     # Task 3
-    cp -r "$OUTDIR"/t2_ft "$OUTDIR"/t3
+    cp -r "$OUTDIR"/t2 "$OUTDIR"/t3
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t3/log.txt
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t3/t3_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t3" MODEL.WEIGHTS "$OUTDIR/t3/model_final.pth"
 
@@ -136,7 +136,7 @@ task_4 () {
     fi
 
     # Task 4
-    cp -r "$OUTDIR"/t3_ft "$OUTDIR"/t4
+    cp -r "$OUTDIR"/t3 "$OUTDIR"/t4
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t4/log.txt
 
     python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t4/t4_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t4" MODEL.WEIGHTS "$OUTDIR/t4/model_final.pth"
@@ -155,7 +155,7 @@ task_4 () {
 }
 
 set -e
-#task_1
+task_1
 task_2
 task_3
 task_4
