@@ -3,5 +3,5 @@ DATASETS:
   TRAIN: ('t1_voc_coco_2007_mini_train', ) 
   TEST: ('voc_coco_2007_test', )   
 SOLVER:
-  STEPS: (9000, 9500)
-  MAX_ITER: 10000
+  STEPS: (4500, 4825)
+  MAX_ITER: 5000
