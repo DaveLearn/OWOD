@@ -6,12 +6,13 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 
 output_path = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else f"{script_path}/../output"
 result_outputs = ["t1", "t1_final", "t2", "t2_ft", "t2_final", "t3", "t3_ft", "t3_final", "t4", "t4_ft", "t4_final"]
+task_names = ["Task 1 Train", "Task 1", "Task 2 Train", "Task 2 FT", "Task 2", "Task 3 Train", "Task 3 FT", "Task 3", "Task 4 Train", "Task 4 FT", "Task 4"]
 
 experiment_folder = os.path.basename(os.path.normpath(output_path))
 collated = dict()
 collated['Experiment_Folder'] = experiment_folder
 
-for task_num,output in enumerate(result_outputs, start=1):
+for task_name,output in zip(task_names, result_outputs):
     
     logpath = output_path+"/"+output
     logfile = logpath+"/log.txt"
@@ -30,8 +31,7 @@ for task_num,output in enumerate(result_outputs, start=1):
     with open(outputfile, 'r') as statsfd:
         stats = json.load(statsfd)
         stats["Timings"] = timings
-        task_name = output[1:].replace('_', ' ').replace('f', 'F')
-        collated[f"Task {task_name}"]=stats
+        collated[task_name]=stats
 
 
 final_stats_path = f"{output_path}/stats.json"
