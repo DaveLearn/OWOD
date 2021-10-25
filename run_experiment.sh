@@ -25,10 +25,15 @@ if [[ $1 = '--fast' ]]; then
     SUFFIX="_fast"
 fi
 
+if [[ $1 = '--mini' ]]; then
+    shift
+    SUFFIX="_mini"
+fi
+
 OUTDIR=$1
 
 if [[ -z $OUTDIR ]]; then
-    echo "Usage run_experiment.sh [--fast] <outputfolder>"
+    echo "Usage run_experiment.sh [--fast | --mini] <outputfolder>"
     exit 1
 fi
 
@@ -37,6 +42,9 @@ mkdir -p "$OUTDIR"
 
 clean_folder () {
     rm -f "$1"/model_[0123456789]*   
+    if [[ -e "$1"/energy ]]; then
+        rm -rf "$1"/energy
+    fi
 }
 
 collect_stats () {

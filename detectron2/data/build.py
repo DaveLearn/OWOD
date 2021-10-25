@@ -248,7 +248,15 @@ def get_detection_dataset_dicts(
     elif 'val' in d_name:
         dataset_dicts = label_known_class_and_unknown(cfg, dataset_dicts)
     elif 'ft' in d_name:
-        dataset_dicts = remove_unknown_instances(cfg, dataset_dicts)
+        for idx, dset_name in enumerate(dataset_names):
+           if str(dset_name).startswith("t1"):
+               remove_prev_class_and_unk_instances_range(0, 20, dataset_dicts[idx])
+           if str(dset_name).startswith("t2"):
+               remove_prev_class_and_unk_instances_range(20, 20, dataset_dicts[idx])
+           if str(dset_name).startswith("t3"):
+               remove_prev_class_and_unk_instances_range(40, 20, dataset_dicts[idx])
+           if str(dset_name).startswith("t4"):
+               remove_prev_class_and_unk_instances_range(60, 20, dataset_dicts[idx])
 
     if has_instances:
         try:
@@ -260,6 +268,25 @@ def get_detection_dataset_dicts(
 
     assert len(dataset_dicts), "No valid data found in {}.".format(",".join(dataset_names))
     return dataset_dicts
+
+
+def remove_prev_class_and_unk_instances_range(prev, curr, dataset_dict):
+    # For training data.
+    prev_intro_cls = prev
+    curr_intro_cls = curr
+    valid_classes = range(prev_intro_cls, prev_intro_cls + curr_intro_cls)
+
+    logger = logging.getLogger(__name__)
+    logger.info("Valid classes: " + str(valid_classes))
+    logger.info("Removing earlier seen class objects and the unknown objects...")
+
+    annos = dataset_dict["annotations"]
+    for annotation in copy.copy(annos):
+        if annotation["category_id"] not in valid_classes:
+            annos.remove(annotation)
+
+    return dataset_dict
+
 
 def remove_prev_class_and_unk_instances(cfg, dataset_dicts):
     # For training data.
