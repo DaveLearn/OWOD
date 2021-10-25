@@ -231,6 +231,26 @@ def get_detection_dataset_dicts(
             for dataset_i_dicts, proposal_file in zip(dataset_dicts, proposal_files)
         ]
 
+    # filter dicts
+    for dataset_name, dicts in zip(dataset_names, dataset_dicts):
+      if 'train' in dataset_name:
+          dicts = remove_prev_class_and_unk_instances(cfg, dicts)
+      elif 'test' in dataset_name:
+          dicts = label_known_class_and_unknown(cfg, dicts)
+      elif 'val' in dataset_name:
+          dicts = label_known_class_and_unknown(cfg, dicts)
+      elif 'ft' in dataset_name:
+          if str(dataset_name).startswith("t1"):
+              remove_prev_class_and_unk_instances_range(0, 20, dicts)
+          if str(dataset_name).startswith("t2"):
+              remove_prev_class_and_unk_instances_range(20, 20, dicts)
+          if str(dataset_name).startswith("t3"):
+              remove_prev_class_and_unk_instances_range(40, 20, dicts)
+          if str(dataset_name).startswith("t4"):
+              remove_prev_class_and_unk_instances_range(60, 20, dicts)
+
+
+
     dataset_dicts = list(itertools.chain.from_iterable(dataset_dicts))
 
     has_instances = "annotations" in dataset_dicts[0]
@@ -239,24 +259,7 @@ def get_detection_dataset_dicts(
     if min_keypoints > 0 and has_instances:
         dataset_dicts = filter_images_with_few_keypoints(dataset_dicts, min_keypoints)
 
-    d_name = dataset_names[0]
-    # if 'voc_coco' in d_name:
-    if 'train' in d_name:
-        dataset_dicts = remove_prev_class_and_unk_instances(cfg, dataset_dicts)
-    elif 'test' in d_name:
-        dataset_dicts = label_known_class_and_unknown(cfg, dataset_dicts)
-    elif 'val' in d_name:
-        dataset_dicts = label_known_class_and_unknown(cfg, dataset_dicts)
-    elif 'ft' in d_name:
-        for idx, dset_name in enumerate(dataset_names):
-           if str(dset_name).startswith("t1"):
-               remove_prev_class_and_unk_instances_range(0, 20, dataset_dicts[idx])
-           if str(dset_name).startswith("t2"):
-               remove_prev_class_and_unk_instances_range(20, 20, dataset_dicts[idx])
-           if str(dset_name).startswith("t3"):
-               remove_prev_class_and_unk_instances_range(40, 20, dataset_dicts[idx])
-           if str(dset_name).startswith("t4"):
-               remove_prev_class_and_unk_instances_range(60, 20, dataset_dicts[idx])
+    
 
     if has_instances:
         try:
@@ -269,8 +272,7 @@ def get_detection_dataset_dicts(
     assert len(dataset_dicts), "No valid data found in {}.".format(",".join(dataset_names))
     return dataset_dicts
 
-
-def remove_prev_class_and_unk_instances_range(prev, curr, dataset_dict):
+def remove_prev_class_and_unk_instances_range(prev, curr, dataset_dicts):
     # For training data.
     prev_intro_cls = prev
     curr_intro_cls = curr
@@ -279,13 +281,13 @@ def remove_prev_class_and_unk_instances_range(prev, curr, dataset_dict):
     logger = logging.getLogger(__name__)
     logger.info("Valid classes: " + str(valid_classes))
     logger.info("Removing earlier seen class objects and the unknown objects...")
+    for entry in copy.copy(dataset_dicts):
+        annos = entry["annotations"]
+        for annotation in copy.copy(annos):
+            if annotation["category_id"] not in valid_classes:
+               annos.remove(annotation)
 
-    annos = dataset_dict["annotations"]
-    for annotation in copy.copy(annos):
-        if annotation["category_id"] not in valid_classes:
-            annos.remove(annotation)
-
-    return dataset_dict
+    return dataset_dicts
 
 
 def remove_prev_class_and_unk_instances(cfg, dataset_dicts):
