@@ -148,7 +148,7 @@ task_4 () {
     
    # clean_folder "$OUTDIR"/t4_ft
 
-    echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t4_final/log.txt
+    #echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t4_final/log.txt
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t4/t4_test.yaml OUTPUT_DIR "$OUTDIR/t4_final" MODEL.WEIGHTS "$OUTDIR/t4/model_final.pth"
     
     collect_stats "$OUTDIR"/t4_final
