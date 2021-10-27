@@ -84,7 +84,7 @@ task_2 () {
     mkdir -p "$OUTDIR"/t2
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t2/log.txt
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t2/t2_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t2"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t2/t2_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t2" MODEL.WEIGHTS "$OUTDIR/t1/model_final.pth"
 
     clean_folder "$OUTDIR"/t2
     #cp -r -T "$OUTDIR"/t2 "$OUTDIR"/t2_ft
@@ -111,7 +111,7 @@ task_3 () {
     # Task 3
     mkdir -p "$OUTDIR"/t3
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t3/log.txt
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t3/t3_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t3"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t3/t3_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t3" MODEL.WEIGHTS "$OUTDIR/t2/model_final.pth"
 
     clean_folder "$OUTDIR"/t3
    # cp -r "$OUTDIR"/t3 "$OUTDIR"/t3_ft
@@ -139,7 +139,7 @@ task_4 () {
     mkdir -p "$OUTDIR"/t4
     echo "Using code in commit: $(git log --pretty=oneline -n 1)" >> "$OUTDIR"/t4/log.txt
 
-    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t4/t4_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t4"
+    python tools/train_net.py --num-gpus 1 --dist-url='tcp://127.0.0.1:52127' --config-file ./configs/OWOD/t4/t4_train${SUFFIX}.yaml OUTPUT_DIR "$OUTDIR/t4" MODEL.WEIGHTS "$OUTDIR/t3/model_final.pth"
 
     clean_folder "$OUTDIR"/t4
   #  cp -r "$OUTDIR"/t4 "$OUTDIR"/t4_ft
