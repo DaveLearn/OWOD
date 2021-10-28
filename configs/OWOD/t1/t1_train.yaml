@@ -3,7 +3,7 @@ MODEL:
   WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
 DATASETS:
   TRAIN: ('t1_voc_coco_2007_train', ) # t1_voc_coco_2007_train, t1_voc_coco_2007_ft
-  TEST: ('voc_coco_2007_test', 't1_voc_coco_2007_known_test')   # voc_coco_2007_test, t1_voc_coco_2007_test, t1_voc_coco_2007_val
+  TEST: ('voc_coco_2007_test', )   # voc_coco_2007_test, t1_voc_coco_2007_test, t1_voc_coco_2007_val
 SOLVER:
   STEPS: (45000, 47500)
   MAX_ITER: 50000

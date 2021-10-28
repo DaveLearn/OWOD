@@ -2,7 +2,7 @@ _BASE_: "../../Base-RCNN-C4-OWOD.yaml"
 MODEL:
   WEIGHTS: "./output/t3/model_final.pth"
 DATASETS:
-  TRAIN: ('t3_voc_coco_2007_train', )
+  TRAIN: ['t3_voc_coco_2007_train', 't1_voc_coco_2007_ft_100', 't2_voc_coco_2007_ft_100']
   TEST: ('voc_coco_2007_test', )
 SOLVER:
   STEPS: ()
