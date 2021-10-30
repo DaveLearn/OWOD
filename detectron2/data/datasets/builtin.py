@@ -218,6 +218,7 @@ def register_all_pascal_voc(root):
         ("t1_voc_coco_2007_train", "VOC2007", "t1_train"),
 
         ("t1_voc_coco_2007_ft100", "VOC2007", "t1_ft_100"),
+        ("t1_voc_coco_2007_ft100ss", "VOC2007", "t1_ft_100ss"),
         ("t1_voc_coco_2007_ft200", "VOC2007", "t1_ft_200"),
         ("t1_voc_coco_2007_ft300", "VOC2007", "t1_ft_300"),
         ("t1_voc_coco_2007_mini_train", "VOC2007", "t1_25pct_train"),
@@ -233,6 +234,7 @@ def register_all_pascal_voc(root):
         ("t2_voc_coco_2007_mini_train", "VOC2007", "t2_25pct_train"),
         ("t2_voc_coco_2007_ft", "VOC2007", "t2_ft"),
         ("t2_voc_coco_2007_ft100", "VOC2007", "t2_ft_100"),
+        ("t2_voc_coco_2007_ft100ss", "VOC2007", "t2_ft_100ss"),
         ("t2_voc_coco_2007_ft200", "VOC2007", "t2_ft_200"),
         ("t2_voc_coco_2007_ft300", "VOC2007", "t2_ft_300"),
 
@@ -240,12 +242,14 @@ def register_all_pascal_voc(root):
         ("t3_voc_coco_2007_mini_train", "VOC2007", "t3_25pct_train"),
         ("t3_voc_coco_2007_ft", "VOC2007", "t3_ft"),
         ("t3_voc_coco_2007_ft100", "VOC2007", "t3_ft_100"),
+        ("t3_voc_coco_2007_ft100ss", "VOC2007", "t3_ft_100ss"),
         ("t3_voc_coco_2007_ft200", "VOC2007", "t3_ft_200"),
         ("t3_voc_coco_2007_ft300", "VOC2007", "t3_ft_300"),
         ("t4_voc_coco_2007_train", "VOC2007", "t4_train"),
         ("t4_voc_coco_2007_mini_train", "VOC2007", "t4_25pct_train"),
         ("t4_voc_coco_2007_ft", "VOC2007", "t4_ft"),
         ("t4_voc_coco_2007_ft100", "VOC2007", "t4_ft_100"),
+        ("t4_voc_coco_2007_ft100ss", "VOC2007", "t4_ft_100ss"),
         ("t4_voc_coco_2007_ft200", "VOC2007", "t4_ft_200"),
         ("t4_voc_coco_2007_ft300", "VOC2007", "t4_ft_300"),
         
