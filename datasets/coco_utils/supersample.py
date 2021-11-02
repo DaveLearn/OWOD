@@ -2,9 +2,9 @@ import os
 import random
 import itertools
 dset_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../VOC2007/ImageSets/Main'))
-input_file = os.path.join(dset_path, 't4_ft_100.txt')
-match_file = os.path.join(dset_path, 't4_ft_300.txt' )
-output_file = os.path.join(dset_path, 't4_ft_100ss.txt')
+input_file = os.path.join(dset_path, 't1_ft_200.txt')
+match_file = os.path.join(dset_path, 't1_ft_300.txt' )
+output_file = os.path.join(dset_path, 't1_ft_200ss.txt')
 
 with open(match_file, "r") as inf:
     items = inf.readlines()
