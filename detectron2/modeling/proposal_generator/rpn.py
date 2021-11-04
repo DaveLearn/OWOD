@@ -1,11 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 from typing import Dict, List, Optional, Tuple, Union
+import numpy as np
 import torch
 import torch.nn.functional as F
 from fvcore.nn import giou_loss, smooth_l1_loss
 from torch import nn
 
 from detectron2.config import configurable
+from detectron2.data.detection_utils import convert_image_to_rgb
 from detectron2.layers import ShapeSpec, cat
 from detectron2.structures import Boxes, ImageList, Instances, pairwise_iou
 from detectron2.utils.events import get_event_storage
@@ -164,6 +166,8 @@ class RPN(nn.Module):
         loss_weight: Union[float, Dict[str, float]] = 1.0,
         box_reg_loss_type: str = "smooth_l1",
         smooth_l1_beta: float = 0.0,
+        vis_period: int = 0,
+        input_format: Optional[str] = None,
     ):
         """
         NOTE: this interface is experimental.
@@ -216,6 +220,8 @@ class RPN(nn.Module):
         self.loss_weight = loss_weight
         self.box_reg_loss_type = box_reg_loss_type
         self.smooth_l1_beta = smooth_l1_beta
+        self.vis_period = vis_period
+        self.input_format = input_format
 
     @classmethod
     def from_config(cls, cfg, input_shape: Dict[str, ShapeSpec]):
@@ -234,6 +240,8 @@ class RPN(nn.Module):
             "box2box_transform": Box2BoxTransform(weights=cfg.MODEL.RPN.BBOX_REG_WEIGHTS),
             "box_reg_loss_type": cfg.MODEL.RPN.BBOX_REG_LOSS_TYPE,
             "smooth_l1_beta": cfg.MODEL.RPN.SMOOTH_L1_BETA,
+            "vis_period": cfg.VIS_PERIOD,
+            "input_format": cfg.INPUT.FORMAT,
         }
 
         ret["pre_nms_topk"] = (cfg.MODEL.RPN.PRE_NMS_TOPK_TRAIN, cfg.MODEL.RPN.PRE_NMS_TOPK_TEST)
@@ -245,6 +253,54 @@ class RPN(nn.Module):
         )
         ret["head"] = build_rpn_head(cfg, [input_shape[f] for f in in_features])
         return ret
+
+    def visualize_training(self, batched_inputs, fg_anchors, bg_anchors):
+        """
+        A function used to visualize images and proposals. It shows ground truth
+        bounding boxes on the original image and up to 20 top-scoring predicted
+        object proposals on the original image. Users can implement different
+        visualization functions for different models.
+
+        Args:
+            batched_inputs (list): a list that contains input to the model.
+            fg_anchors (list): a list that contains sampled foreground anchors for each batch input
+            bg_anchors (list): a list of background anchors for each batched input
+
+        """
+        from detectron2.utils.visualizer import Visualizer
+
+        storage = get_event_storage()
+        max_vis_prop = 300
+
+        gt_color = np.array([255, 0, 0]) # red
+        fg_color = np.array([255,255,255]) #white
+        bg_color = np.array([255,255,255]) #white
+
+        for input, fg, bg in zip(batched_inputs, fg_anchors, bg_anchors):
+            gt_boxes = input["instances"].gt_boxes
+            img = input["image"]
+            img = convert_image_to_rgb(img.permute(1, 2, 0), self.input_format)
+            v_gt = Visualizer(img, None)
+            v_gt.overlay_instances(boxes=gt_boxes, assigned_colors=[gt_color for _ in gt_boxes])
+            box_size = min(len(fg), max_vis_prop)
+            fg_boxes = fg[0:box_size].tensor.cpu().numpy()
+            v_gt = v_gt.overlay_instances(boxes=fg_boxes, assigned_colors=[fg_color for _ in fg_boxes])
+            
+            anno_img = v_gt.get_image()
+            v_pred = Visualizer(img, None)
+            v_pred.overlay_instances(boxes=gt_boxes, assigned_colors=[gt_color for _ in gt_boxes])
+
+            box_size = min(len(bg), max_vis_prop)
+            bg_boxes = bg[0:box_size].tensor.cpu().numpy()
+            v_pred = v_pred.overlay_instances(boxes=bg_boxes, assigned_colors=[bg_color for _ in bg_boxes])
+
+            prop_img = v_pred.get_image()
+            vis_img = np.concatenate((anno_img, prop_img), axis=1)
+            vis_img = vis_img.transpose(2, 0, 1)
+            vis_name = "Left: object anchors;  Right: bg anchors"
+            storage.put_image(vis_name, vis_img)
+            break  # only visualize one image in a batch
+
 
     def _subsample_labels(self, label):
         """
@@ -404,6 +460,7 @@ class RPN(nn.Module):
         images: ImageList,
         features: Dict[str, torch.Tensor],
         gt_instances: Optional[List[Instances]] = None,
+        batched_inputs = None
     ):
         """
         Args:
@@ -440,6 +497,13 @@ class RPN(nn.Module):
         if self.training:
             assert gt_instances is not None, "RPN requires gt_instances in training!"
             gt_labels, gt_boxes = self.label_and_sample_anchors(anchors, gt_instances)
+
+            if self.vis_period > 0 and self.batched_inputs is not None:
+                storage = get_event_storage()
+                if storage.iter % self.vis_period == 0:
+                    self.visualize_training(batched_inputs, anchors[gt_labels==1], anchors[gt_labels==0])
+
+
             losses = self.losses(
                 anchors, pred_objectness_logits, gt_labels, pred_anchor_deltas, gt_boxes
             )
