@@ -271,6 +271,7 @@ class ROIHeads(torch.nn.Module):
                 Other fields such as "gt_classes", "gt_masks", that's included in `targets`.
         """
         gt_boxes = [x.gt_boxes for x in targets]
+        og_proposals = proposals
         # Augment proposals with ground-truth boxes.
         # In the case of learned proposals (e.g., RPN), when training starts
         # the proposals will be low quality due to random initialization.
@@ -328,6 +329,10 @@ class ROIHeads(torch.nn.Module):
         storage = get_event_storage()
         storage.put_scalar("roi_head/num_fg_samples", np.mean(num_fg_samples))
         storage.put_scalar("roi_head/num_bg_samples", np.mean(num_bg_samples))
+
+        # for temporary visualization purposes.
+        og_proposals.clear()
+        og_proposals.extend(proposals_with_gt)
 
         return proposals_with_gt
 

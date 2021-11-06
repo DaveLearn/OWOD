@@ -272,27 +272,50 @@ class RPN(nn.Module):
         storage = get_event_storage()
         max_vis_prop = 300
 
-        gt_color = np.array([255, 0, 0]) # red
-        fg_color = np.array([255,255,255]) #white
-        bg_color = np.array([255,255,255]) #white
+        gt_color = np.array([1.0, 0, 0]) # red
+        fg_color = np.array([0.0,1.0,0.0]) # green
+        bg_color = np.array([0.0,0.0,1.0]) #blue
+        white = np.array([1.0,1.0,1.0])
 
         for input, fg, bg in zip(batched_inputs, fg_anchors, bg_anchors):
             gt_boxes = input["instances"].gt_boxes
+
+          
+
             img = input["image"]
             img = convert_image_to_rgb(img.permute(1, 2, 0), self.input_format)
             v_gt = Visualizer(img, None)
             v_gt.overlay_instances(boxes=gt_boxes, assigned_colors=[gt_color for _ in gt_boxes])
-            box_size = min(len(fg), max_vis_prop)
-            fg_boxes = fg[0:box_size].tensor.cpu().numpy()
-            v_gt = v_gt.overlay_instances(boxes=fg_boxes, assigned_colors=[fg_color for _ in fg_boxes])
+           
+            fg_centres = torch.unique(torch.round((fg.tensor[:,2:4] + fg.tensor[:,0:2])/ 2),dim=0)
+            # detection boxes are 3x3, which is 48x48 on original image
+            fg_detect_boxes = torch.cat([fg_centres - 24, fg_centres + 24],dim=1)
+            box_size = min(len(fg_detect_boxes), max_vis_prop)
+            fgidx = torch.randperm(fg_detect_boxes.size(0))[:box_size]
+            fg_boxes = fg_detect_boxes[fgidx].cpu().numpy()
+
             
+
+            v_gt.overlay_instances(boxes=fg_boxes, assigned_colors=[fg_color for _ in fg_boxes])
+            
+            v_gt = v_gt.overlay_instances(boxes=fg.tensor.cpu().numpy(), assigned_colors=[white for _ in fg])
+
+
+
+
             anno_img = v_gt.get_image()
             v_pred = Visualizer(img, None)
             v_pred.overlay_instances(boxes=gt_boxes, assigned_colors=[gt_color for _ in gt_boxes])
 
             box_size = min(len(bg), max_vis_prop)
-            bg_boxes = bg[0:box_size].tensor.cpu().numpy()
-            v_pred = v_pred.overlay_instances(boxes=bg_boxes, assigned_colors=[bg_color for _ in bg_boxes])
+            centres = torch.unique(torch.round((bg.tensor[:,2:4] + bg.tensor[:,0:2])/ 2),dim=0)
+            detect_boxes = torch.cat([centres - 24, centres + 24],dim=1)
+            box_size = min(len(detect_boxes), max_vis_prop)
+            idx = torch.randperm(detect_boxes.size(0))[:box_size]
+            bg_boxes = detect_boxes[idx].cpu().numpy()
+
+            v_pred.overlay_instances(boxes=bg_boxes, assigned_colors=[bg_color for _ in bg_boxes])
+            v_pred = v_pred.overlay_instances(boxes=bg.tensor.cpu().numpy(), assigned_colors=[white for _ in bg])
 
             prop_img = v_pred.get_image()
             vis_img = np.concatenate((anno_img, prop_img), axis=1)
@@ -498,10 +521,12 @@ class RPN(nn.Module):
             assert gt_instances is not None, "RPN requires gt_instances in training!"
             gt_labels, gt_boxes = self.label_and_sample_anchors(anchors, gt_instances)
 
-            if self.vis_period > 0 and self.batched_inputs is not None:
+            if self.vis_period > 0 and batched_inputs is not None:
                 storage = get_event_storage()
                 if storage.iter % self.vis_period == 0:
-                    self.visualize_training(batched_inputs, anchors[gt_labels==1], anchors[gt_labels==0])
+                    fg_anchors = [anc[lab==1] for lab,anc in zip(gt_labels, anchors)]
+                    bg_anchors = [anc[lab==0] for lab,anc in zip(gt_labels, anchors)]
+                    self.visualize_training(batched_inputs, fg_anchors, bg_anchors)
 
 
             losses = self.losses(

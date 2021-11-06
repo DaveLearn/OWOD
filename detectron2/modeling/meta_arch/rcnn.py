@@ -8,6 +8,7 @@ from torch import nn
 from detectron2.config import configurable
 from detectron2.data.detection_utils import convert_image_to_rgb
 from detectron2.structures import ImageList
+from detectron2.utils.colormap import random_color
 from detectron2.utils.events import get_event_storage
 from detectron2.utils.logger import log_first_n
 
@@ -104,16 +105,20 @@ class GeneralizedRCNN(nn.Module):
         storage = get_event_storage()
         max_vis_prop = 20
 
+        num_colors = 90
+        gt_colors = [random_color(rgb=True, maximum=1) for _ in range(90)]
+
         for input, prop in zip(batched_inputs, proposals):
             img = input["image"]
             img = convert_image_to_rgb(img.permute(1, 2, 0), self.input_format)
             v_gt = Visualizer(img, None)
-            v_gt = v_gt.overlay_instances(boxes=input["instances"].gt_boxes)
+            v_gt = v_gt.overlay_instances(boxes=input["instances"].gt_boxes, assigned_colors=[gt_colors[i % num_colors] for i in input["instances"].gt_classes])
             anno_img = v_gt.get_image()
             box_size = min(len(prop.proposal_boxes), max_vis_prop)
             v_pred = Visualizer(img, None)
             v_pred = v_pred.overlay_instances(
-                boxes=prop.proposal_boxes[0:box_size].tensor.cpu().numpy()
+                boxes=prop.proposal_boxes[0:box_size].tensor.cpu().numpy(),
+                assigned_colors=[gt_colors[i % num_colors] for i in prop.gt_classes[0:box_size]]
             )
             prop_img = v_pred.get_image()
             vis_img = np.concatenate((anno_img, prop_img), axis=1)
