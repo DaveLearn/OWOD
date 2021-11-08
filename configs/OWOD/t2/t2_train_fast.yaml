@@ -4,13 +4,14 @@ MODEL:
   RPN:
     POST_NMS_TOPK_TRAIN: 300
 DATASETS:
-  TRAIN: ['t2_voc_coco_2007_train', 't1_voc_coco_2007_ft_100'] # t1_voc_coco_2007_train, t1_voc_coco_2007_ft
+  TRAIN: ['t2_voc_coco_2007_train'] # t1_voc_coco_2007_train, t1_voc_coco_2007_ft
   TEST: ('voc_coco_2007_test', )
 SOLVER:
-  STEPS: [17500]
+  STEPS: [13500]
   BASE_LR: 0.001
-  MAX_ITER: 20000
+  MAX_ITER: 15000
 OUTPUT_DIR: "./output/t2"
 OWOD:
   PREV_INTRODUCED_CLS: 20
   CUR_INTRODUCED_CLS: 20
+  DATASET_MIXIN: ['t1_voc_coco_2007_ft_100']

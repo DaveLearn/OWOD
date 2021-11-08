@@ -20,6 +20,7 @@ import logging
 import os
 from collections import OrderedDict
 import torch
+from detectron2.config.config import CfgNode
 
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
@@ -38,6 +39,26 @@ from detectron2.evaluation import (
     verify_results,
 )
 from detectron2.modeling import GeneralizedRCNNWithTTA
+
+# thanks to https://discuss.pytorch.org/t/train-simultaneously-on-two-datasets/649/35
+class cat_dataloaders():
+    """Class to concatenate multiple dataloaders"""
+
+    def __init__(self, dataloaders: list):
+        self.dataloaders = dataloaders
+        len(self.dataloaders)
+
+    def __iter__(self):
+        self.loader_iter = []
+        for data_loader in self.dataloaders:
+            self.loader_iter.append(iter(data_loader))
+        return self
+
+    def __next__(self):
+        out = []
+        for data_iter in self.loader_iter:
+            out.append(*next(data_iter)) # may raise StopIteration
+        return out
 
 
 class Trainer(DefaultTrainer):
@@ -114,6 +135,30 @@ class Trainer(DefaultTrainer):
         res = cls.test(cfg, model, evaluators)
         res = OrderedDict({k + "_TTA": v for k, v in res.items()})
         return res
+
+
+    @classmethod
+    def build_train_loader(cls, cfg: CfgNode):
+        """
+        Returns:
+            iterable
+
+        It now calls :func:`detectron2.data.build_detection_train_loader`.
+        Overwrite it if you'd like a different data loader.
+        """
+        current_task_loader =  DefaultTrainer.build_train_loader(cfg)
+        mixin_dataset = cfg.OWOD.DATASET_MIXIN
+        
+        if len(mixin_dataset) == 0:
+            return current_task_loader
+        
+        tmp_config = cfg.clone()
+        tmp_config.DATASETS.TRAIN = cfg.OWOD.DATASET_MIXIN
+        prev_task_loader = DefaultTrainer.build_train_loader(tmp_config)
+
+        return cat_dataloaders([current_task_loader, prev_task_loader])
+
+
 
 
 def setup(args):
