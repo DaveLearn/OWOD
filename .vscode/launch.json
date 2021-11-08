@@ -29,6 +29,24 @@
             }
         },
         {
+            "name": "Launch T2 Train Fast",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/train_net.py",
+            "args": [
+                "--num-gpus", "1",
+                "--dist-url='tcp://127.0.0.1:52133'",
+                "--config-file", "./configs/OWOD/t2/t2_train_fast.yaml",
+                "OUTPUT_DIR", "./output/debug/t2",
+                "MODEL.WEIGHTS", "./output/debug/t1/model_final.pth"
+            ],
+            "env": {
+                "CUDA_LAUNCH_BLOCKING": "1",
+                "CUDA_HOME": "~/",
+                "PYTHONOPTIMIZE": "TRUE"
+            }
+        },
+        {
             "name": "Launch T1 Test",
             "type": "python",
             "request": "launch",

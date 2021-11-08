@@ -150,9 +150,10 @@ class Trainer(DefaultTrainer):
         mixin_dataset = cfg.OWOD.DATASET_MIXIN
         
         if len(mixin_dataset) == 0:
-            return current_task_loader
-        
+            return cat_dataloaders([current_task_loader]) # for consistency
+
         tmp_config = cfg.clone()
+        tmp_config.defrost()
         tmp_config.DATASETS.TRAIN = cfg.OWOD.DATASET_MIXIN
         prev_task_loader = DefaultTrainer.build_train_loader(tmp_config)
 

@@ -71,6 +71,7 @@ task_1 () {
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t1/t1_test.yaml  OUTPUT_DIR "$OUTDIR/t1_final" MODEL.WEIGHTS "$OUTDIR/t1/model_final.pth"
 
     collect_stats "$OUTDIR"/t1_final
+    clean_folder "$OUTDIR"/t1_final
 }
 
 task_2 () {
@@ -99,6 +100,7 @@ task_2 () {
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t2/t2_test.yaml OUTPUT_DIR "$OUTDIR/t2_final" MODEL.WEIGHTS "$OUTDIR/t2/model_final.pth"
 
     collect_stats "$OUTDIR"/t2_final
+    clean_folder "$OUTDIR"/t2_final
 }
 
 task_3 () {
@@ -126,6 +128,7 @@ task_3 () {
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t3/t3_test.yaml OUTPUT_DIR "$OUTDIR/t3_final" MODEL.WEIGHTS "$OUTDIR/t3/model_final.pth"
 
     collect_stats "$OUTDIR"/t3_final
+    clean_folder "$OUTDIR"/t3_final
 }
 
 task_4 () {
@@ -152,6 +155,7 @@ task_4 () {
     python tools/train_net.py --num-gpus 1 --eval-only --config-file ./configs/OWOD/t4/t4_test.yaml OUTPUT_DIR "$OUTDIR/t4_final" MODEL.WEIGHTS "$OUTDIR/t4/model_final.pth"
     
     collect_stats "$OUTDIR"/t4_final
+    clean_folder "$OUTDIR"/t4_final
 }
 
 set -e
