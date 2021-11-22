@@ -7,8 +7,8 @@ DATASETS:
   TRAIN: ['t1_voc_coco_2007_ft300', 't2_voc_coco_2007_ft300'] # t1_voc_coco_2007_train, t1_voc_coco_2007_ft
   TEST: ('voc_coco_2007_test', )
 SOLVER:
-  STEPS: (8000, 8250)
-  MAX_ITER: 8500
+  STEPS: (8550, 9025)
+  MAX_ITER: 9500
   WARMUP_ITERS: 10
 OUTPUT_DIR: "./output/t2"
 OWOD:
