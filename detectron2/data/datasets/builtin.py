@@ -236,7 +236,7 @@ def register_all_pascal_voc(root):
         ("t2_voc_coco_2007_ft100", "VOC2007", "t2_ft_100"),
         ("t2_voc_coco_2007_ft200", "VOC2007", "t2_ft_200"),
         ("t2_voc_coco_2007_ft300", "VOC2007", "t2_ft_300"),
-        ("t2_voc_coco_2007_ft300", "VOC2007", "t2_ft_400"),
+        ("t2_voc_coco_2007_ft400", "VOC2007", "t2_ft_400"),
         ("t3_voc_coco_2007_train", "VOC2007", "t3_train"),
         ("t3_voc_coco_2007_mini_train", "VOC2007", "t3_25pct_train"),
         ("t3_voc_coco_2007_ft", "VOC2007", "t3_ft"),
