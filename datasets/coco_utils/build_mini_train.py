@@ -1,6 +1,6 @@
 import random
 
-percent_to_keep = 10
+percent_to_keep = 75
 
 def create_dataset(train_file, dest_file):
    
