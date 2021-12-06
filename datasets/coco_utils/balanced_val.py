@@ -45,7 +45,7 @@ T4_CLASS_NAMES = [
 
 UNK_CLASS = ["unknown"]
 
-items_per_class = 25
+items_per_class = 45
 
 # Change this accodingly for each task t*
 known_classes = [ list(itertools.chain(VOC_CLASS_NAMES)), \
