@@ -233,6 +233,10 @@ def register_all_pascal_voc(root):
         ("t1_voc_coco_2007_val_25", "VOC2007", "t1_val_25"),
         ("t2_voc_coco_2007_val_25", "VOC2007", "t2_val_25"),
         ("t3_voc_coco_2007_val_25", "VOC2007", "t3_val_25"),
+        ("voc_coco_2007_val_10pct", "VOC2007", "all_task_val_10pct"),
+        ("voc_coco_2007_val_25pct", "VOC2007", "all_task_val_25pct"),
+        ("voc_coco_2007_val_50pct", "VOC2007", "all_task_val_50pct"),
+
         ("t2_voc_coco_2007_train", "VOC2007", "t2_train"),
         ("t2_voc_coco_2007_mini_train", "VOC2007", "t2_25pct_train"),
         ("t2_voc_coco_2007_ft", "VOC2007", "t2_ft"),
