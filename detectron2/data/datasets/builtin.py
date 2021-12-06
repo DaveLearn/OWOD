@@ -242,9 +242,9 @@ def register_all_pascal_voc(root):
         ("t2_voc_coco_2007_val_5", "VOC2007", "t2_val_5"),
         ("t3_voc_coco_2007_val_5", "VOC2007", "t3_val_5"),
 
-        ("t1_voc_coco_2007_val_5", "VOC2007", "t1_val_1"),
-        ("t2_voc_coco_2007_val_5", "VOC2007", "t2_val_1"),
-        ("t3_voc_coco_2007_val_5", "VOC2007", "t3_val_1"),
+        ("t1_voc_coco_2007_val_1", "VOC2007", "t1_val_1"),
+        ("t2_voc_coco_2007_val_1", "VOC2007", "t2_val_1"),
+        ("t3_voc_coco_2007_val_1", "VOC2007", "t3_val_1"),
 
         ("t1_voc_coco_2007_val_35", "VOC2007", "t1_val_35"),
         ("t2_voc_coco_2007_val_35", "VOC2007", "t2_val_35"),
