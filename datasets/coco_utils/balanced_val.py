@@ -45,7 +45,7 @@ T4_CLASS_NAMES = [
 
 UNK_CLASS = ["unknown"]
 
-items_per_class = 1
+items_per_class = 20
 
 # Change this accodingly for each task t*
 known_classes = [ list(itertools.chain(VOC_CLASS_NAMES)), \
@@ -55,9 +55,9 @@ known_classes = [ list(itertools.chain(VOC_CLASS_NAMES)), \
 
 train_file = '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/all_task_val.txt'
 
-dest_files = [ '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t1_val_' + str(items_per_class) + '.txt', \
-               '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t2_val_' + str(items_per_class) + '.txt', \
-               '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t3_val_' + str(items_per_class) + '.txt' ]
+dest_files = [ '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t1_val_' + str(items_per_class) + 'each.txt', \
+               '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t2_val_' + str(items_per_class) + 'each.txt', \
+               '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t3_val_' + str(items_per_class) + 'each.txt' ]
 
 # known_classes = list(itertools.chain(VOC_CLASS_NAMES))
 # train_files = ['/home/fk1/workspace/OWOD/datasets/VOC2007/ImageSets/Main/train.txt']
@@ -72,11 +72,8 @@ random.shuffle(file_names)
 
 for task_num in range(3):
     print(f"known classes: {','.join(known_classes[task_num])} ")
-    wanted_unknowns = len(known_classes[task_num]) * items_per_class
-    print(f"wanted unknowns: {wanted_unknowns}")
 
-    image_store = Store(len(known_classes[task_num]), items_per_class)
-    unknown_store = Store(1, wanted_unknowns)
+    image_store = Store(2, items_per_class)
 
     current_min_item_count = 0
 
@@ -92,24 +89,21 @@ for task_num in range(3):
             if cls in VOC_CLASS_NAMES_COCOFIED:
                 cls = BASE_VOC_CLASS_NAMES[VOC_CLASS_NAMES_COCOFIED.index(cls)]
             if cls in known_classes[task_num]:
-                image_store.add((fileid,), (known_classes[task_num].index(cls),))
+                image_store.add((fileid,), (1,))
             else:
-                unknown_store.add((fileid,), (0, ))
+                image_store.add((fileid,), (0, ))
 
         current_min_item_count = min([len(items) for items in image_store.retrieve(-1)])
-        current_unknown_count = len(unknown_store.retrieve(0))
-        print(f'known_min={current_min_item_count}, unknown={current_unknown_count}')
+        print(f'known_min={current_min_item_count}')
         
-        if current_min_item_count >= items_per_class and current_unknown_count >= wanted_unknowns:
+        if current_min_item_count >= items_per_class:
             break
 
-    filtered_file_names = unknown_store.retrieve(0)
+    filtered_file_names = []
     for items in image_store.retrieve(-1):
         filtered_file_names.extend(items)
     
     print(image_store)
-    print(unknown_store)
-    print(len(filtered_file_names))
     print(len(set(filtered_file_names)))
 
     filtered_file_names = set(filtered_file_names)

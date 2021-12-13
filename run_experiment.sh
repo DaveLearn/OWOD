@@ -154,7 +154,7 @@ task_4 () {
     collect_stats "$OUTDIR"/t4_final
 }
 
-task_1
+#task_1
 task_2
-task_3
-task_4
+#task_3
+#task_4
