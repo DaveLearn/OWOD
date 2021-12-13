@@ -55,10 +55,11 @@ known_classes_by_task = [
     list(itertools.chain(T4_CLASS_NAMES))
 ]
 
-train_files_by_task = ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t1_train.txt',
-    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t2_train.txt',
-    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t3_train.txt',
-    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t4_train.txt' 
+train_files_by_task = [
+    ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t1_train.txt'],
+    ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t2_train.txt'],
+    ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t3_train.txt'],
+    ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t4_train.txt'] 
 ]
 
 dest_file_by_task = [ 
@@ -74,7 +75,7 @@ annotation_location = '/home/n11020211/OWOD/datasets/VOC2007/Annotations'
 
 
 for task_num in range(0,4):
-    
+
     train_files = train_files_by_task[task_num]
     known_classes = known_classes_by_task[task_num]
     dest_file = dest_file_by_task[task_num]
