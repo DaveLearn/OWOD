@@ -45,71 +45,82 @@ T4_CLASS_NAMES = [
 
 UNK_CLASS = ["unknown"]
 
-items_per_class = 400
+items_per_class = 300
 
 # Change this accodingly for each task t*
-known_classes = list(itertools.chain(VOC_CLASS_NAMES))
-#known_classes = list(itertools.chain(T2_CLASS_NAMES))
-#known_classes = list(itertools.chain(T3_CLASS_NAMES))
-#known_classes = list(itertools.chain(T4_CLASS_NAMES))
+known_classes_by_task = [
+    list(itertools.chain(VOC_CLASS_NAMES)),
+    list(itertools.chain(T2_CLASS_NAMES)),
+    list(itertools.chain(T3_CLASS_NAMES)),
+    list(itertools.chain(T4_CLASS_NAMES))
+]
 
-train_files = ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t1_train.txt',]
-#train_files = ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t2_train.txt']
-#train_files = ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t3_train.txt' ]
-#train_files = ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t4_train.txt' ]
+train_files_by_task = ['/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t1_train.txt',
+    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t2_train.txt',
+    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t3_train.txt',
+    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t4_train.txt' 
+]
 
-dest_file = '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t1_ft_' + str(items_per_class) + '.txt'
-#dest_file = '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t2_ft_' + str(items_per_class) + '.txt'
-#dest_file = '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t3_ft_' + str(items_per_class) + '.txt'
-#dest_file = '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t4_ft_' + str(items_per_class) + '.txt'
-
+dest_file_by_task = [ 
+    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t1_ft_' + str(items_per_class) + '.txt',
+    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t2_ft_' + str(items_per_class) + '.txt',
+    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t3_ft_' + str(items_per_class) + '.txt',
+    '/home/n11020211/OWOD/datasets/VOC2007/ImageSets/Main/t4_ft_' + str(items_per_class) + '.txt'
+]
 
 # known_classes = list(itertools.chain(VOC_CLASS_NAMES))
 # train_files = ['/home/fk1/workspace/OWOD/datasets/VOC2007/ImageSets/Main/train.txt']
 annotation_location = '/home/n11020211/OWOD/datasets/VOC2007/Annotations'
 
-file_names = []
-for tf in train_files:
-    with open(tf, mode="r") as myFile:
-        file_names.extend(myFile.readlines())
 
-random.shuffle(file_names)
+for task_num in range(0,4):
+    
+    train_files = train_files_by_task[task_num]
+    known_classes = known_classes_by_task[task_num]
+    dest_file = dest_file_by_task[task_num]
+    
+    file_names = []
+    for tf in train_files:
+        with open(tf, mode="r") as myFile:
+            file_names.extend(myFile.readlines())
 
-image_store = Store(len(known_classes), items_per_class)
+    random.shuffle(file_names)
 
-current_min_item_count = 0
+    image_store = Store(len(known_classes), items_per_class)
 
-for fileid in file_names:
-    fileid = fileid.strip()
-    anno_file = os.path.join(annotation_location, fileid + ".xml")
+    current_min_item_count = 0
 
-    with PathManager.open(anno_file) as f:
-        tree = ET.parse(f)
+    for fileid in file_names:
+        fileid = fileid.strip()
+        anno_file = os.path.join(annotation_location, fileid + ".xml")
 
-    for obj in tree.findall("object"):
-        cls = obj.find("name").text
-        if cls in VOC_CLASS_NAMES_COCOFIED:
-            cls = BASE_VOC_CLASS_NAMES[VOC_CLASS_NAMES_COCOFIED.index(cls)]
-        if cls in known_classes:
-            image_store.add((fileid,), (known_classes.index(cls),))
+        with PathManager.open(anno_file) as f:
+            tree = ET.parse(f)
 
-    current_min_item_count = min([len(items) for items in image_store.retrieve(-1)])
-    print(current_min_item_count)
-    if current_min_item_count == items_per_class:
-        break
+        for obj in tree.findall("object"):
+            cls = obj.find("name").text
+            if cls in VOC_CLASS_NAMES_COCOFIED:
+                cls = BASE_VOC_CLASS_NAMES[VOC_CLASS_NAMES_COCOFIED.index(cls)]
+            if cls in known_classes:
+                image_store.add((fileid,), (known_classes.index(cls),))
 
-filtered_file_names = []
-for items in image_store.retrieve(-1):
-    filtered_file_names.extend(items)
+        current_min_item_count = min([len(items) for items in image_store.retrieve(-1)])
+        print(current_min_item_count)
+        if current_min_item_count == items_per_class:
+            break
 
-print(image_store)
-print(len(filtered_file_names))
-print(len(set(filtered_file_names)))
+    filtered_file_names = []
+    for items in image_store.retrieve(-1):
+        filtered_file_names.extend(items)
 
-filtered_file_names = set(filtered_file_names)
-filtered_file_names = map(lambda x: x + '\n', filtered_file_names)
+    print(image_store)
+    print(len(filtered_file_names))
+    print(len(set(filtered_file_names)))
 
-with open(dest_file, mode="w") as myFile:
-    myFile.writelines(filtered_file_names)
+    filtered_file_names = set(filtered_file_names)
+    filtered_file_names = map(lambda x: x + '\n', filtered_file_names)
 
-print('Saved to file: ' + dest_file)
+    with open(dest_file, mode="w") as myFile:
+        myFile.writelines(filtered_file_names)
+
+    print('Saved to file: ' + dest_file)
