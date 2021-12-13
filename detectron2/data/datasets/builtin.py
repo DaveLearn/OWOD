@@ -230,6 +230,31 @@ def register_all_pascal_voc(root):
         ("t1_voc_coco_2007_known_test", "VOC2007", "t1_known_test"),
         ("voc_coco_2007_test", "VOC2007", "all_task_test"),
         ("voc_coco_2007_val", "VOC2007", "all_task_val"),
+        ("t1_voc_coco_2007_val_25", "VOC2007", "t1_val_25"),
+        ("t2_voc_coco_2007_val_25", "VOC2007", "t2_val_25"),
+        ("t3_voc_coco_2007_val_25", "VOC2007", "t3_val_25"),
+
+        ("t1_voc_coco_2007_val_15", "VOC2007", "t1_val_15"),
+        ("t2_voc_coco_2007_val_15", "VOC2007", "t2_val_15"),
+        ("t3_voc_coco_2007_val_15", "VOC2007", "t3_val_15"),
+
+        ("t1_voc_coco_2007_val_5", "VOC2007", "t1_val_5"),
+        ("t2_voc_coco_2007_val_5", "VOC2007", "t2_val_5"),
+        ("t3_voc_coco_2007_val_5", "VOC2007", "t3_val_5"),
+
+        ("t1_voc_coco_2007_val_1", "VOC2007", "t1_val_1"),
+        ("t2_voc_coco_2007_val_1", "VOC2007", "t2_val_1"),
+        ("t3_voc_coco_2007_val_1", "VOC2007", "t3_val_1"),
+
+        ("t1_voc_coco_2007_val_35", "VOC2007", "t1_val_35"),
+        ("t2_voc_coco_2007_val_35", "VOC2007", "t2_val_35"),
+        ("t3_voc_coco_2007_val_35", "VOC2007", "t3_val_35"),
+
+        ("t1_voc_coco_2007_val_45", "VOC2007", "t1_val_45"),
+        ("t2_voc_coco_2007_val_45", "VOC2007", "t2_val_45"),
+        ("t3_voc_coco_2007_val_45", "VOC2007", "t3_val_45"),
+
+
         ("t2_voc_coco_2007_train", "VOC2007", "t2_train"),
         ("t2_voc_coco_2007_mini_train", "VOC2007", "t2_25pct_train"),
         ("t2_voc_coco_2007_ft", "VOC2007", "t2_ft"),

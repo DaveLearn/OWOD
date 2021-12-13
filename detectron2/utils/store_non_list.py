@@ -17,7 +17,7 @@ class Store:
         if class_id != -1:
             items = []
             for item in self.store[class_id]:
-                items.extend(item)
+                items.append(item)
             if self.shuffle:
                 random.shuffle(items)
             return items
