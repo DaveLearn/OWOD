@@ -467,7 +467,7 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
     nd = len(image_ids)
     tp = np.zeros(nd)
     fp = np.zeros(nd)
-
+    fp_open_set = np.zeros(nd)
     # if 'unknown' not in classname:
     #     return tp, fp, 0
 
@@ -499,19 +499,23 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
             ovmax = np.max(overlaps)
             jmax = np.argmax(overlaps)
 
-        if ovmax > ovthresh:
-            if not R["difficult"][jmax]:
-                if not R["det"][jmax]:
-                    tp[d] = 1.0
-                    R["det"][jmax] = 1
-                else:
-                    fp[d] = 1.0
+            if ovmax > ovthresh:
+                if not R["difficult"][jmax]:
+                    if not R["det"][jmax]:
+                        tp[d] = 1.0
+                        R["det"][jmax] = 1
+                    else:
+                        fp[d] = 1.0
         else:
-            fp[d] = 1.0
+            fp[d] = 1.0   # collect all false positives in here (closed or open)
+            if BBGT.size == 0:
+                fp_open_set[d] = 1.0  # but count it as open set false positive so we can subtract it after AP calculation
 
     # compute precision recall
     fp = np.cumsum(fp)
     tp = np.cumsum(tp)
+    fp_open_set = np.cumsum(fp_open_set)
+    
     rec = tp / float(npos)
     # avoid divide by zero in case the first detection matches a difficult
     # ground truth
@@ -588,8 +592,9 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
     # logger.info("Num of unknown instances: " + str(n_unk))
     # logger.info('OSE: ' + str(OSE))
 
-    tp_plus_fp_closed_set = tp+fp
-    fp_open_set = np.cumsum(is_unk)
+    fp_closed_set = fp - fp_open_set # our false positives include open set false positives
+    tp_plus_fp_closed_set = tp + fp_closed_set
+    # fp_open_set = np.cumsum(is_unk)
 
     return rec, prec, ap, is_unk_sum, n_unk, tp_plus_fp_closed_set, fp_open_set
 
