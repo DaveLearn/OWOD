@@ -436,6 +436,8 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
 
     imagenames = imagenames_filtered
 
+    
+
     # extract gt objects for this class
     class_recs = {}
     npos = 0
@@ -446,7 +448,9 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
         # difficult = np.array([False for x in R]).astype(np.bool)  # treat all "difficult" as GT
         det = [False] * len(R)
         npos = npos + sum(~difficult)
-        class_recs[imagename] = {"bbox": bbox, "difficult": difficult, "det": det}
+        known_objects = [obj for obj in recs[imagename] if obj["name"] != "unknown"]
+        is_wilderness = len(known_objects) == 0  # An image is wilderness if it doesn't include any known objects (as per Dhamija et al 2020)
+        class_recs[imagename] = {"bbox": bbox, "difficult": difficult, "det": det, "is_wilderness": is_wilderness}
 
     # read dets
     detfile = detpath.format(classname)
@@ -499,23 +503,25 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
             ovmax = np.max(overlaps)
             jmax = np.argmax(overlaps)
 
-            if ovmax > ovthresh:
-                if not R["difficult"][jmax]:
-                    if not R["det"][jmax]:
-                        tp[d] = 1.0
-                        R["det"][jmax] = 1
-                    else:
-                        fp[d] = 1.0
+        if ovmax > ovthresh:
+            if not R["difficult"][jmax]:
+                if not R["det"][jmax]:
+                    tp[d] = 1.0
+                    R["det"][jmax] = 1
+                else:
+                    fp[d] = 1.0
+                    if R["is_wilderness"]:
+                        fp_open_set[d] = 1.0  # but count it as open set false positive so we can subtract it after AP calculation
         else:
             fp[d] = 1.0   # collect all false positives in here (closed or open)
-            if BBGT.size == 0:
+            if R["is_wilderness"]:
                 fp_open_set[d] = 1.0  # but count it as open set false positive so we can subtract it after AP calculation
 
     # compute precision recall
     fp = np.cumsum(fp)
     tp = np.cumsum(tp)
     fp_open_set = np.cumsum(fp_open_set)
-    
+
     rec = tp / float(npos)
     # avoid divide by zero in case the first detection matches a difficult
     # ground truth

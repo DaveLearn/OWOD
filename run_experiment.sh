@@ -58,13 +58,13 @@ sample_data () {
   echo "re-sampling training data"
   python datasets/coco_utils/balanced_ft.py
 
-  cp ./datasets/VOC2007/ImageSets/Main/t{1,2,3}_val_1.txt $OUTDIR/data
+  cp ./datasets/VOC2007/ImageSets/Main/t{1,2,3}_ft_1.txt $OUTDIR/data
   
 
   echo "re-sampling validation data"
   python datasets/coco_utils/balanced_val.py
 
-  cp ./datasets/VOC2007/ImageSets/Main/t{1,2,3,4}_ft_300.txt $OUTDIR/data
+  cp ./datasets/VOC2007/ImageSets/Main/t{1,2,3,4}_val_300.txt $OUTDIR/data
 }
 
 task_1 () {
